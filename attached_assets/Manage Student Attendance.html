@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Pass - Manage Student Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/Manage Student Attendace.css" rel="stylesheet">
+    <style>
+        .attendance-summary {
+            margin-top: 18px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .attendance-counter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            letter-spacing: 0.02em;
+            border: none;
+            background: none;
+        }
+
+        .attendance-counter.present {
+            background: #198754;
+            color: #fff;
+        }
+
+        .attendance-counter.absent {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .attendance-counter .counter-icon {
+            font-size: 1.3em;
+            margin-right: 8px;
+            color: #fff;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">Class Pass</div>
+                <div class="sidebar-menu">
+                    <a href="Enroll Student.html" class="menu-item">Enroll Students</a>
+                    <a href="Class Schedule.html" class="menu-item">Class Schedule</a>
+                    <a href="Manage Student Attendance.html" class="menu-item active">Manage Student Attendance</a>
+                </div>
+                <div class="user-section">
+                    <img src="https://i.pravatar.cc/100" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <p class="user-name">Kobe Bryant</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn">Logout</a>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Class Attendance Overview -->
+                <div id="classOverview">
+                    <h2>Class Attendance</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Class Code</th>
+                                    <th>Course Description</th>
+                                    <th>Students</th>
+                                    <th>Schedule</th>
+                                    <th>Date</th>
+                                    <th>Attended</th>
+                                </tr>
+                            </thead>
+                            <tbody id="class-overview-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Class Detail View -->
+                <div id="classDetailView" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 id="classDetailTitle">Class: </h2>
+                            <h5 id="classDetailCode">Class Code: </h5>
+                        </div>
+                        <button class="btn btn-primary back-button" id="backToOverview">&#8592; Back</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="class-detail-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Class Attendance Detail View -->
+                <div id="classAttendanceView">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 id="classTitle">Class: Information Assurance and Security 2</h2>
+                            <h5 id="classCode">Class: F79</h5>
+                            <h5 id="classInstructor">Instructor: Kobe Bryant</h5>
+                        </div>
+                        <button class="btn btn-primary back-button" id="backToClasses">Back</button>
+                    </div>
+
+                    <!-- January -->
+                    <div class="month-section">
+                        <h3>January</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered attendance-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Status</th>
+                                        <th>Days Attended</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="clickable-row" data-student-id="zoren-okko" data-month="january">
+                                        <td>Zoren Okko</td>
+                                        <td>Present</td>
+                                        <td>13 out of 13</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-student-id="amiel-oliquiano" data-month="january">
+                                        <td>Amiel Oliquiano</td>
+                                        <td>Present</td>
+                                        <td>13 out of 13</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- February -->
+                    <div class="month-section">
+                        <h3>February</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered attendance-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Status</th>
+                                        <th>Days Attended</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="clickable-row" data-student-id="zoren-okko" data-month="february">
+                                        <td>Zoren Okko</td>
+                                        <td>Present</td>
+                                        <td>12 out of 12</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-student-id="amiel-oliquiano" data-month="february">
+                                        <td>Amiel Oliquiano</td>
+                                        <td>Present</td>
+                                        <td>12 out of 12</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- March -->
+                    <div class="month-section">
+                        <h3>March</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered attendance-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Status</th>
+                                        <th>Days Attended</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="clickable-row" data-student-id="zoren-okko" data-month="march">
+                                        <td>Zoren Okko</td>
+                                        <td>Present</td>
+                                        <td>13 out of 13</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-student-id="amiel-oliquiano" data-month="march">
+                                        <td>Amiel Oliquiano</td>
+                                        <td>Present</td>
+                                        <td>13 out of 13</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Detail View -->
+                <div id="studentDetailView" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="student-info-card">
+                            <h2 id="studentDetailTitle">Student: </h2>
+                            <h5 id="studentDetailClass">Class: </h5>
+                            <div class="attendance-summary">
+                                <span class="attendance-counter present">
+                                    <span class="counter-icon">✔</span>
+                                    Present: <span id="presentCount">0</span>
+                                </span>
+                                <span class="attendance-counter absent">
+                                    <span class="counter-icon">✖</span>
+                                    Absent: <span id="absentCount">0</span>
+                                </span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary back-button" id="backToAttendance">&#8592; Back</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered attendance-table" id="studentDatesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentDatesBody">
+                                <!-- Student dates will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/Manage Student Attendace.js"></script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: #343a40;
+    color: white;
+    min-height: 100vh;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.sidebar-menu {
+    flex-grow: 1;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.menu-item {
+    display: block;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    border: none;
+    background: none;
+    position: relative;
+    border-left: 3px solid transparent;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+    text-decoration: none;
+    border-left: 3px solid #17ce9a;
+    padding-left: 25px;
+}
+
+.logout-section {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.btn-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.btn-link:hover {
+    color: #17ce9a;
+    text-decoration: underline;
+}
+
+/* Main Content Styles */
+.main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    position: relative;
+}
+
+.course-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.course-number {
+    font-size: 36px;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.course-icon {
+    font-size: 36px;
+    margin-right: 15px;
+}
+
+.add-course-btn {
+    margin-left: auto;
+    background-color: #17ce9a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.add-course-btn:hover {
+    background-color: #13b88a;
+}
+
+/* Table Styles */
+.table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    font-weight: bold;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 12px 15px;
+}
+
+.table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.table td:last-child {
+    text-align: center;
+    vertical-align: middle;
+    width: 120px;
+}
+
+.action-icons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.delete-icon, .edit-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #333;
+    padding: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-icon:hover {
+    color: #ff3b30;
+}
+
+.edit-icon:hover {
+    color: #17ce9a;
+}
+
+/* Modal Styles - Centered, Hidden by Default, and Fade Animation */
+.modal-overlay {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex !important;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-dialog {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.modal-header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+}
+
+.btn-save, .btn-proceed, .btn-yes, .btn-no {
+    width: 100%;
+    padding: 12px;
+    background-color: #17ce9a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.btn-save:hover, .btn-proceed:hover, .btn-yes:hover {
+    background-color: #13b88a;
+}
+
+.btn-no {
+    background-color: #ff3b30;
+}
+
+.btn-no:hover {
+    background-color: #d32f2f;
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+    .course-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Header Styles to Match Manage Instructor/Students */
+.content-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.content-header h2 {
+    font-weight: bold;
+    margin-right: 20px;
+    color: #000; /* Black text */
+}
+
+.student-count {
+    display: flex;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #000; /* Black number */
+}
+
+.student-icon {
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    border-radius: 0 !important;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.student-icon i {
+    color: #000 !important;
+    font-size: 20px !important;
+    background: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Force the course icon to match instructor/student style */
+.content-header .student-count .student-icon {
+    width: 40px;
+    height: 40px;
+    background: #000 !important;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.content-header .student-count .student-icon i {
+    color: #fff !important;
+    font-size: 20px;
+}
+
+div.student-icon > i.fa-solid {
+    color: #fff !important;
+}
+
+/* Force the book icon to be white inside the black circle */
+.student-icon > .fa-book,
+.student-icon > .fa-book-open {
+    color: #fff !important;
+}
+
+/* FINAL OVERRIDE: Only a black book icon, no circle, no background */
+.student-icon,
+.content-header .student-count .student-icon {
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    border-radius: 0 !important;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none !important;
+}
+
+.student-icon i,
+.content-header .student-count .student-icon i,
+.student-icon > .fa-book,
+.student-icon > .fa-book-open {
+    color: #000 !important;
+    background: none !important;
+    border-radius: 0 !important;
+    font-size: 20px !important;
+    box-shadow: none !important;
+}

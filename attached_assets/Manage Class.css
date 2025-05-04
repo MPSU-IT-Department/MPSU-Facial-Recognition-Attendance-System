@@ -1,0 +1,413 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: #343a40;
+    color: white;
+    min-height: 100vh;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.sidebar-menu {
+    flex-grow: 1;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.menu-item {
+    display: block;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    border: none;
+    background: none;
+    position: relative;
+    border-left: 3px solid transparent;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+    text-decoration: none;
+    border-left: 3px solid #17ce9a;
+    padding-left: 25px;
+}
+
+.logout-section {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Main Content Styles */
+.main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    position: relative;
+}
+
+.content-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.content-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.class-count {
+    display: flex;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #000;
+}
+
+.class-icon {
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    border-radius: 0 !important;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.class-icon i {
+    color: #000 !important;
+    font-size: 20px !important;
+}
+
+.add-btn {
+    margin-left: auto;
+    background-color: #17ce9a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.add-btn:hover {
+    background-color: #13b88a;
+}
+
+/* Table Styles */
+.table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    font-weight: bold;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 12px 15px;
+}
+
+.table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.table td:last-child {
+    text-align: center;
+    vertical-align: middle;
+    width: 120px;
+}
+
+.action-icons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-icons button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #333;
+    padding: 5px;
+}
+
+.action-icons button:hover {
+    color: #17ce9a;
+}
+
+.action-icons button:hover i.fa-trash-can,
+.action-icons button:hover i.fa-trash {
+    color: #ff3b30;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    transition: opacity 0.3s ease;
+}
+
+.modal-dialog {
+    margin: 10% auto;
+    width: 500px;
+    max-width: 90%;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+/* Button Styles */
+.btn-save, .btn-proceed, .btn-yes {
+    width: 100%;
+    padding: 12px;
+    background-color: #17ce9a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-save:hover, .btn-proceed:hover, .btn-yes:hover {
+    background-color: #13b88a;
+}
+
+.btn-no {
+    width: 100%;
+    padding: 12px;
+    background-color: #ff3b30;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-no:hover {
+    background-color: #dc3545;
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.confirmation-buttons button {
+    flex: 1;
+    margin-top: 0;
+}
+
+.day-selector {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.day-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    border: none;
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.day-btn.selected {
+    background-color: #17ce9a;
+    color: white;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #17ce9a;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(23, 206, 154, 0.1);
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 40px;
+}
+
+/* Time Slots Section */
+h4 {
+    margin: 25px 0 15px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+.time-slot {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.time-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.time-input {
+    width: 80px;
+    text-align: center;
+    padding: 8px;
+}
+
+.time-separator {
+    margin: 0 5px;
+    color: #666;
+}
+
+.am-pm-selector {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    min-width: 70px;
+}
+
+.add-time-slot-btn {
+    background-color: #f8f9fa;
+    border: 1px dashed #ddd;
+    color: #555;
+    padding: 12px;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+    margin: 20px 0;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.add-time-slot-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+}

@@ -1,0 +1,227 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+}
+.sidebar {
+    background-color: #343a40;
+    color: white;
+    min-height: 100vh;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+}
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+.sidebar-menu {
+    flex-grow: 1;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+}
+.menu-item {
+    display: block;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    border: none;
+    background: none;
+    position: relative;
+    border-left: 3px solid transparent;
+    text-align: left;
+    width: 100%;
+}
+.menu-item:hover,
+.menu-item.active {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+    text-decoration: none;
+    border-left: 3px solid #17ce9a;
+    padding-left: 25px;
+}
+.logout-section {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    position: relative;
+}
+.back-button {
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 20px;
+    font-size: 1.1rem;
+}
+.logout {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}
+.table {
+    margin-top: 20px;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+}
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.header-info {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 18px;
+    margin-bottom: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    font-size: 1.08rem;
+    max-width: 420px;
+    font-family: inherit;
+    display: flex;
+    align-items: flex-start;
+    border: 1px solid #ececec;
+}
+.header-info strong {
+    font-weight: 800;
+    color: #23272b;
+    font-size: 1.22em;
+    letter-spacing: 0.01em;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.header-info span {
+    color: #222;
+    font-weight: 500;
+    font-size: 1.12em;
+    flex: 1;
+    word-break: break-word;
+}
+.content h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+/* Button Styles */
+.toggle-status-btn {
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    color: white;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    text-align: center;
+}
+.absent-btn {
+    background-color: #dc3545;
+}
+.absent-btn:hover {
+    background-color: #c82333;
+}
+.present-btn {
+    background-color: #28a745;
+}
+.present-btn:hover {
+    background-color: #218838;
+}
+/* Table Styles */
+.table th {
+    font-weight: bold;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+}
+.table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+.table td:last-child {
+    text-align: center;
+}
+/* Add specific styling for action buttons */
+.table td:last-child .toggle-status-btn {
+    display: inline-block;
+    margin: 0 auto;
+}
+/* Status Colors */
+.status-present {
+    color: #28a745;
+}
+.status-absent {
+    color: #dc3545;
+}
+/* Link Styles */
+.course-link, .instructor-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.course-link:hover, .instructor-link:hover {
+    color: #17ce9a;
+    text-decoration: none;
+}
+
+.table th:last-child {
+    text-align: center;
+}
+
+.class-info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0;
+}
+
+.class-info-card .info-label {
+    font-weight: 900 !important;
+    color: #23272b;
+    min-width: 130px;
+    display: inline-block;
+    letter-spacing: 0.06em;
+    font-size: 1.22em !important;
+    text-transform: uppercase;
+    margin-right: 10px;
+    margin-bottom: 2px;
+}
+
+.class-info-card .info-value {
+    color: #555;
+    font-size: 1.1em;
+    font-weight: 500;
+}

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Pass</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/Manage Students.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">Class Pass</div>
+        <div class="sidebar-menu">
+            <a href="Manage Instructor.html" class="menu-item">Manage Instructors</a>
+            <a href="Manage Students.html" class="menu-item active">Manage Students</a>
+            <a href="Manage Courses.html" class="menu-item">Manage Courses</a>
+            <a href="Manage Class.html" class="menu-item">Manage Class</a>
+            <a href="Manage Instructor Attendance.html" class="menu-item">Manage Instructor Attendance</a>
+        </div>
+        <div class="logout-section">
+            <a href="#" class="menu-item" id="logout-btn">Logout</a>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="content-header">
+            <h2>Registered Students</h2>
+            <div class="student-count">
+                <span id="student-count">5</span>
+                <div class="student-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Add Student -->
+        <div class="search-add-section">
+            <div class="search-box">
+                <input type="text" class="form-control" placeholder="Search">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn-add-student" id="btnAddStudent">
+                <i class="fas fa-plus"></i> Add Student
+            </button>
+        </div>
+
+        <!-- Students Table -->
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>ID Number</th>
+                        <th>Year Level <i class="fas fa-sort"></i></th>
+                        <th>Phone Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table">
+                    <!-- Students will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <h4>Are You Sure?</h4>
+                    <div class="confirmation-buttons">
+                        <button class="btn-yes" id="btnConfirmYes">Yes</button>
+                        <button class="btn-no" id="btnConfirmNo">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal-overlay" id="editStudentModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Edit Student</h4>
+                    <button class="close-btn" id="closeEditModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editStudentForm">
+                        <input type="hidden" id="edit-student-id">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="edit-first-name" placeholder="First Name">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="edit-last-name" placeholder="Last Name">
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" class="form-control" id="edit-phone" placeholder="Phone Number">
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" id="edit-year-level">
+                                <option value="">Select Year Level</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="edit-id-number" placeholder="ID Number" readonly>
+                        </div>
+                        <button type="submit" class="btn-proceed">Proceed</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal - Step 1 -->
+    <div class="modal-overlay" id="addStudentModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add Student</h4>
+                    <button class="close-btn" id="closeAddModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStudentForm">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="add-first-name" placeholder="First Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="add-last-name" placeholder="Last Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" class="form-control" id="add-phone" placeholder="Phone Number" required>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" id="add-year-level" required>
+                                <option value="">Select Year Level</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="add-id-number" placeholder="ID Number" required>
+                        </div>
+                        <button type="submit" class="btn-proceed">Proceed</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal - Step 2 (Pictures) -->
+    <div class="modal-overlay" id="studentPicturesModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add Student</h4>
+                    <button class="close-btn" id="closePicturesModal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Min. of 3 pictures and max. of 6 pictures</p>
+                    <button class="btn-upload" id="btnUploadPictures">Upload Pictures</button>
+                    <div class="picture-preview" id="picturePreview"></div>
+                    <button class="btn-save" id="btnSavePictures">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Pictures Modal -->
+    <div class="modal-overlay" id="editPicturesModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Edit Student</h4>
+                    <button class="close-btn" id="closeEditPicturesModal">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Min. of 3 pictures and max. of 6 pictures</p>
+                    <button class="btn-change-pictures" id="btnChangePictures">Change Pictures</button>
+                    <div class="picture-preview" id="editPicturePreview"></div>
+                    <button class="btn-save" id="btnSaveEditPictures">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/Manage Students.js"></script>
+</body>
+</html>

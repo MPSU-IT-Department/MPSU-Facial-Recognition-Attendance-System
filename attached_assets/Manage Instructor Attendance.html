@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Pass - Instructor Attendance Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/Manage Instructor Attendace.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <div class="sidebar-header">Class Pass</div>
+                <div class="sidebar-menu">
+                    <a href="Manage Instructor.html" class="menu-item">Manage Instructors</a>
+                    <a href="Manage Students.html" class="menu-item">Manage Students</a>
+                    <a href="Manage Courses.html" class="menu-item">Manage Courses</a>
+                    <a href="Manage Class.html" class="menu-item">Manage Class</a>
+                    <a href="Manage Instructor Attendance.html" class="menu-item active">Manage Instructor Attendance</a>
+                </div>
+                <div class="logout-section">
+                    <a href="#" class="menu-item" id="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 content">
+                <!-- Initial View - Instructor Attendance Table -->
+                <div id="instructor-attendance-view">
+                    <h2>Instructor Attendance</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Class Code</th>
+                                <th>Course Description</th>
+                                <th>Instructor</th>
+                                <th>Schedule</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-class="F77" data-instructor="Lebron James">
+                                <td>F77</td>
+                                <td><a href="#" class="course-link">Application Development</a></td>
+                                <td><a href="#" class="instructor-link">Lebron James</a></td>
+                                <td>7-8 AM MW, 8-9AM MWF</td>
+                                <td>March 30 2025</td>
+                                <td class="status-present">Present</td>
+                                <td>
+                                    <button type="button" class="toggle-status-btn absent-btn" onclick="toggleAttendance('F77', 'March 30 2025')">Mark Absent</button>
+                                </td>
+                            </tr>
+                            <tr data-class="F78" data-instructor="Stephen Curry">
+                                <td>F78</td>
+                                <td><a href="#" class="course-link">Capstone Project 1</a></td>
+                                <td><a href="#" class="instructor-link">Stephen Curry</a></td>
+                                <td>1-2PM MWF</td>
+                                <td>March 30 2025</td>
+                                <td class="status-present">Present</td>
+                                <td>
+                                    <button type="button" class="toggle-status-btn absent-btn" onclick="toggleAttendance('F78', 'March 30 2025')">Mark Absent</button>
+                                </td>
+                            </tr>
+                            <tr data-class="F79" data-instructor="Kobe Bryant">
+                                <td>F79</td>
+                                <td><a href="#" class="course-link">Information Assurance and Security 2</a></td>
+                                <td><a href="#" class="instructor-link">Kobe Bryant</a></td>
+                                <td>11AM-12PM MW,12-1PM MWF</td>
+                                <td>March 30 2025</td>
+                                <td class="status-present">Present</td>
+                                <td>
+                                    <button type="button" class="toggle-status-btn absent-btn" onclick="toggleAttendance('F79', 'March 30 2025')">Mark Absent</button>
+                                </td>
+                            </tr>
+                            <tr data-class="F80" data-instructor="Kobe Bryant">
+                                <td>F80</td>
+                                <td><a href="#" class="course-link">Social and Professional Issues</a></td>
+                                <td><a href="#" class="instructor-link">Kobe Bryant</a></td>
+                                <td>10:30AM-12PM TTh</td>
+                                <td>March 30 2025</td>
+                                <td class="status-present">Present</td>
+                                <td>
+                                    <button type="button" class="toggle-status-btn absent-btn" onclick="toggleAttendance('F80', 'March 30 2025')">Mark Absent</button>
+                                </td>
+                            </tr>
+                            <tr data-class="F81" data-instructor="Kobe Bryant">
+                                <td>F81</td>
+                                <td><a href="#" class="course-link">Systems Administration</a></td>
+                                <td><a href="#" class="instructor-link">Kobe Bryant</a></td>
+                                <td>2-3PM MW,3-4MWF</td>
+                                <td>March 30 2025</td>
+                                <td class="status-absent">Absent</td>
+                                <td>
+                                    <button type="button" class="toggle-status-btn present-btn" onclick="toggleAttendance('F81', 'March 30 2025')">Mark Present</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Class Detail View -->
+                <div id="class-detail-view" style="display: none;">
+                    <div class="header-row">
+                        <div>
+                            <div class="header-info"><strong>Class Code:</strong> <span id="class-code"></span></div>
+                            <div class="header-info"><strong>Description:</strong> <span id="class-description"></span></div>
+                            <div class="header-info"><strong>Instructor:</strong> <span id="class-instructor"></span></div>
+                        </div>
+                        <button class="back-button" id="back-from-class">← Back</button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>January</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="january-attendance">
+                                    <!-- January attendance will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>February</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="february-attendance">
+                                    <!-- February attendance will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>March</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="march-attendance">
+                                    <!-- March attendance will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructor Detail View -->
+                <div id="instructor-detail-view" style="display: none;">
+                    <div class="header-row">
+                        <div>
+                            <div class="header-info"><strong>Instructor:</strong> <span id="instructor-name"></span></div>
+                        </div>
+                        <button class="back-button" id="back-from-instructor">← Back</button>
+                    </div>
+                    
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Class Code</th>
+                                <th>Schedule</th>
+                                <th>Days Attended</th>
+                            </tr>
+                        </thead>
+                        <tbody id="instructor-classes">
+                            <!-- Instructor classes will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/Manage Instructor Attendance.js"></script>
+</body>
+</html>
