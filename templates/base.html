@@ -28,9 +28,9 @@
                 <a href="{{ url_for('courses.manage') }}" class="menu-item {% if request.endpoint == 'courses.manage' %}active{% endif %}">Manage Courses</a>
             {% else %}
                 <!-- Instructor Menu Items -->
-                <a href="{{ url_for('classes.schedule') }}" class="menu-item {% if request.endpoint == 'classes.schedule' %}active{% endif %}">My Classes</a>
-                <a href="{{ url_for('attendance.manage') }}" class="menu-item {% if request.endpoint == 'attendance.manage' %}active{% endif %}">Mark Attendance</a>
-                <a href="{{ url_for('students.enroll') }}" class="menu-item {% if request.endpoint == 'students.enroll' %}active{% endif %}">View Students</a>
+                <a href="{{ url_for('instructors.class_schedule') }}" class="menu-item {% if request.endpoint == 'instructors.class_schedule' %}active{% endif %}">Class Schedule</a>
+                <a href="{{ url_for('instructors.manage_attendance') }}" class="menu-item {% if request.endpoint == 'instructors.manage_attendance' %}active{% endif %}">Manage Attendance</a>
+                <a href="{{ url_for('instructors.enroll_student') }}" class="menu-item {% if request.endpoint == 'instructors.enroll_student' %}active{% endif %}">Enroll Student</a>
             {% endif %}
             <!-- Common Menu Items -->
             <a href="{{ url_for('auth.profile') }}" class="menu-item {% if request.endpoint == 'auth.profile' %}active{% endif %}">My Profile</a>

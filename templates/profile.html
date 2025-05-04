@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends current_user.role == 'instructor' and "instructor_layout.html" or "base.html" %}
 
 {% block title %}My Profile{% endblock %}
 
