@@ -380,14 +380,13 @@
         }
         
         try {
-            const response = await fetch('/classes/api/enroll', {
+            const response = await fetch(`/classes/api/${classId}/enroll`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    studentId: studentId,
-                    classId: classId
+                    student_id: studentId
                 })
             });
             
