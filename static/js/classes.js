@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         classes: [],
         students: [],
+        courses: [],
         currentClassId: null,
         studentToUnenroll: null,
         isEditingClass: false
@@ -133,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await Promise.all([
                 fetchClasses(),
-                fetchStudents()
+                fetchStudents(),
+                fetchCourses()
             ]);
             renderClassesTable();
             addEventListeners();
@@ -141,6 +143,64 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Initialization error:', error);
             showAlert('Failed to load data. Please try again.', 'danger');
+        }
+    }
+    
+    // Fetch courses from the API
+    async function fetchCourses() {
+        try {
+            const response = await fetch('/courses/api/list');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            state.courses = data;
+            populateCourseDropdown();
+            return data;
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+            throw error;
+        }
+    }
+    
+    // Populate the course dropdown
+    function populateCourseDropdown() {
+        const courseSelect = document.getElementById('course');
+        if (!courseSelect) return;
+        
+        // Clear existing options except the first one
+        while (courseSelect.options.length > 1) {
+            courseSelect.remove(1);
+        }
+        
+        // Add course options
+        state.courses.forEach(course => {
+            const option = document.createElement('option');
+            option.value = JSON.stringify({code: course.code, description: course.description});
+            option.textContent = `${course.code}: ${course.description}`;
+            courseSelect.appendChild(option);
+        });
+        
+        // Add event listener to handle course selection
+        courseSelect.addEventListener('change', handleCourseSelection);
+    }
+    
+    // Handle course selection
+    function handleCourseSelection(e) {
+        const selectedValue = e.target.value;
+        if (!selectedValue) {
+            // Reset fields if no course is selected
+            document.getElementById('classCode').value = '';
+            document.getElementById('description').value = '';
+            return;
+        }
+        
+        try {
+            const courseData = JSON.parse(selectedValue);
+            document.getElementById('classCode').value = courseData.code;
+            document.getElementById('description').value = courseData.description;
+        } catch (error) {
+            console.error('Error parsing course data:', error);
         }
     }
 
@@ -354,13 +414,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const classData = state.classes.find(c => c.id === classId);
         if (!classData) return;
         
-        // Set form fields
+        // Set hidden form fields
         document.getElementById('classCode').value = classData.classCode;
         document.getElementById('description').value = classData.description;
         document.getElementById('roomNumber').value = classData.roomNumber;
         document.getElementById('schedule').value = classData.schedule;
         document.getElementById('instructorId').value = classData.instructorId;
         document.getElementById('classId').value = classData.id;
+        
+        // Set course dropdown
+        const courseSelect = document.getElementById('course');
+        if (courseSelect) {
+            // Try to find the matching course
+            let found = false;
+            for (let i = 0; i < courseSelect.options.length; i++) {
+                const option = courseSelect.options[i];
+                if (!option.value) continue;
+                
+                try {
+                    const courseData = JSON.parse(option.value);
+                    if (courseData.code === classData.classCode) {
+                        courseSelect.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                } catch (error) {
+                    console.error('Error parsing course option:', error);
+                }
+            }
+            
+            // If no matching course found, reset to first option
+            if (!found) {
+                courseSelect.selectedIndex = 0;
+            }
+        }
         
         // Set state and modal title
         state.isEditingClass = true;

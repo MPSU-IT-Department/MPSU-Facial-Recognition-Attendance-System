@@ -146,13 +146,14 @@
                 <form id="class-form">
                     <input type="hidden" id="classId" name="classId">
                     <div class="form-group">
-                        <label for="classCode">Class Code</label>
-                        <input type="text" class="form-control" id="classCode" name="classCode" required>
+                        <label for="course">Course</label>
+                        <select class="form-control" id="course" name="course" required>
+                            <option value="">Select a Course</option>
+                            <!-- Courses will be populated by JavaScript -->
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="description">Course Description</label>
-                        <input type="text" class="form-control" id="description" name="description" required>
-                    </div>
+                    <input type="hidden" id="classCode" name="classCode">
+                    <input type="hidden" id="description" name="description">
                     <div class="form-group">
                         <label for="roomNumber">Room Number</label>
                         <input type="text" class="form-control" id="roomNumber" name="roomNumber" required>
