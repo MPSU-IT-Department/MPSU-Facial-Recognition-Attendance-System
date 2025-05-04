@@ -317,9 +317,10 @@ function setupCourseSelection() {
                 // Set description
                 document.getElementById('description').value = courseData.description;
                 
-                // Generate class code
+                // Auto-generate a suggested class code (course code + section)
                 const classCodeInput = document.getElementById('classCode');
-                classCodeInput.value = courseData.code;
+                // Format as CourseCode-Section (e.g., "ITP321-A")
+                classCodeInput.value = courseData.code + "-A";
                 
                 console.log('Course selected:', courseData);
             } catch (error) {

@@ -59,8 +59,8 @@ def get_classes():
         print(f"Returning {len(class_list)} classes in response")
         return jsonify(class_list)
     except Exception as e:
-        print(f"Error in get_classes: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        print(f"Error in get_classes API: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @classes_bp.route('/api/create', methods=['POST'])
 @login_required
