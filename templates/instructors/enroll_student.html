@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate a new student ID
     async function generateStudentId() {
         try {
-            const response = await fetch('/students/api/generate-id');
+            const response = await fetch('/instructors/api/generate-student-id');
             const data = await response.json();
             
             if (data.success) {
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load student images
         try {
-            const response = await fetch(`/students/api/images/${studentId}`);
+            const response = await fetch(`/instructors/api/student-images/${studentId}`);
             const data = await response.json();
             
             if (data.success) {
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         try {
-            const response = await fetch('/students/api/create', {
+            const response = await fetch('/instructors/api/create-student', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -586,11 +586,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const formData = new FormData();
-        formData.append('student_id', studentId);
         formData.append('image', imageFile);
         
         try {
-            const response = await fetch('/students/api/upload-image', {
+            const response = await fetch(`/instructors/api/upload-student-image/${studentId}`, {
                 method: 'POST',
                 body: formData
             });
@@ -598,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             
             if (result.success) {
-                alert('Image uploaded successfully');
+                alert(result.message);
                 
                 // Reload the pictures modal to show the new image
                 const student = state.students.find(s => s.id === studentId);
@@ -621,8 +620,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            const response = await fetch(`/students/api/delete-image/${imageId}`, {
-                method: 'DELETE'
+            const response = await fetch(`/instructors/api/delete-student-image/${imageId}`, {
+                method: 'POST'
             });
             
             const result = await response.json();
@@ -646,8 +645,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle student deletion
     async function handleDelete() {
         try {
-            const response = await fetch(`/students/api/delete/${state.currentStudentId}`, {
-                method: 'DELETE'
+            const response = await fetch(`/instructors/api/delete-student/${state.currentStudentId}`, {
+                method: 'POST'
             });
             
             const result = await response.json();

@@ -671,3 +671,72 @@ def update_attendance():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
+
+@instructors_bp.route('/api/delete-student/<string:student_id>', methods=['POST'])
+@login_required
+def delete_student(student_id):
+    """Delete a student (only for instructors who teach the student)"""
+    # Access check - instructors can only delete students from their classes
+    if current_user.role == 'instructor':
+        # Check if student is in any of this instructor's classes
+        classes = Class.query.filter_by(instructor_id=current_user.id).all()
+        class_ids = [class_obj.id for class_obj in classes]
+        
+        enrollment = Enrollment.query.filter(
+            Enrollment.student_id == student_id,
+            Enrollment.class_id.in_(class_ids)
+        ).first()
+        
+        if not enrollment:
+            return jsonify({'success': False, 'message': 'Student not found in your classes'})
+    elif current_user.role != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    # Get the student
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'success': False, 'message': 'Student not found'})
+    
+    try:
+        # Delete all face encodings
+        face_encodings = FaceEncoding.query.filter_by(student_id=student_id).all()
+        for face_encoding in face_encodings:
+            # Delete the image file if it exists
+            if face_encoding.image_path:
+                file_path = os.path.join(current_app.static_folder, face_encoding.image_path.replace('static/', ''))
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+        
+        # Delete the student
+        db.session.delete(student)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Student deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Error deleting student: {str(e)}'})
+        
+@instructors_bp.route('/api/generate-student-id', methods=['GET'])
+@login_required
+def generate_student_id():
+    """Generate a new student ID based on the current year and max ID"""
+    # Get the current year's last two digits
+    year = datetime.datetime.now().year % 100
+    
+    # Find the highest student ID for the current year
+    current_year_pattern = f"{year}-"
+    max_id = 0
+    
+    students = Student.query.filter(Student.id.like(f"{current_year_pattern}%")).all()
+    for student in students:
+        try:
+            id_number = int(student.id.split('-')[1])
+            if id_number > max_id:
+                max_id = id_number
+        except (IndexError, ValueError):
+            pass
+    
+    # Generate the next ID
+    next_id = f"{year}-{(max_id + 1):05d}"
+    
+    return jsonify({'success': True, 'id': next_id})
