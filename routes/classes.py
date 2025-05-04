@@ -349,9 +349,50 @@ def enroll_student(class_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@classes_bp.route('/api/<int:class_id>/unenroll/<int:enrollment_id>', methods=['DELETE'])
+@login_required
+def unenroll_student_by_enrollment(class_id, enrollment_id):
+    # Restrict access to instructors only
+    if current_user.role != 'instructor':
+        return jsonify({'success': False, 'message': 'Only instructors can unenroll students'}), 403
+    
+    # Check if class exists
+    cls = Class.query.get(class_id)
+    if not cls:
+        return jsonify({'success': False, 'message': 'Class not found'}), 404
+    
+    # Check if enrollment exists
+    enrollment = Enrollment.query.get(enrollment_id)
+    if not enrollment:
+        return jsonify({'success': False, 'message': 'Enrollment record not found'}), 404
+    
+    # Verify the enrollment belongs to the specified class
+    if enrollment.class_id != class_id:
+        return jsonify({'success': False, 'message': 'Enrollment does not belong to this class'}), 400
+    
+    # Save student info before deletion for response
+    student = Student.query.get(enrollment.student_id)
+    student_info = {
+        'id': student.id,
+        'firstName': student.first_name,
+        'lastName': student.last_name
+    }
+    
+    try:
+        # Delete enrollment (cascade will delete attendance records)
+        db.session.delete(enrollment)
+        db.session.commit()
+        return jsonify({
+            'success': True, 
+            'message': f'Student {student_info["firstName"]} {student_info["lastName"]} unenrolled successfully'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @classes_bp.route('/api/<int:class_id>/unenroll/<string:student_id>', methods=['DELETE'])
 @login_required
-def unenroll_student(class_id, student_id):
+def unenroll_student_by_id(class_id, student_id):
     # Restrict access to instructors only
     if current_user.role != 'instructor':
         return jsonify({'success': False, 'message': 'Only instructors can unenroll students'}), 403
