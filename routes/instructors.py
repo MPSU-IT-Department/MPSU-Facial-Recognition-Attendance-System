@@ -233,7 +233,7 @@ def delete(instructor_id):
 
 # New instructor interface routes based on the provided design
 
-@instructors_bp.route('/enroll-student', methods=['GET'])
+@instructors_bp.route('/enroll_student', methods=['GET'])
 @login_required
 def enroll_student():
     # Only allow instructors
@@ -244,7 +244,7 @@ def enroll_student():
     form = StudentForm()
     return render_template('instructors/enroll_student.html', form=form)
 
-@instructors_bp.route('/class-schedule', methods=['GET'])
+@instructors_bp.route('/class_schedule', methods=['GET'])
 @login_required
 def class_schedule():
     # Only allow instructors
@@ -254,7 +254,7 @@ def class_schedule():
     
     return render_template('instructors/class_schedule.html')
 
-@instructors_bp.route('/manage-attendance', methods=['GET'])
+@instructors_bp.route('/manage_attendance', methods=['GET'])
 @login_required
 def manage_attendance():
     # Only allow instructors
