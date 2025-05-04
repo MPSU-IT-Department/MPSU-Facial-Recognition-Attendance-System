@@ -10,7 +10,7 @@
     <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% if current_user.is_authenticated and current_user.role == 'admin' %}admin-role{% endif %}">
     {% if current_user.is_authenticated %}
     <button id="mobile-toggle" class="mobile-toggle">
         <i class="fas fa-bars"></i>

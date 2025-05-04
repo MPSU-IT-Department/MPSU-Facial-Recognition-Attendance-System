@@ -23,7 +23,7 @@ function setupScheduleBuilder(existingSchedule = null) {
     console.log('Setting up schedule builder...');
     
     // DOM element references
-    const dayButtons = document.querySelectorAll('.day-btn');
+    const dayButtons = document.querySelectorAll('.checkbox-btn');
     const resetDaysBtn = document.getElementById('resetDaysBtn');
     const addTimeBtn = document.getElementById('addTimeBtn');
     const scheduleDisplay = document.getElementById('scheduleDisplay');
@@ -101,16 +101,21 @@ function setupScheduleBuilder(existingSchedule = null) {
 
 /**
  * Toggle a day in the UI and selected days set
- * @param {HTMLElement} button - The day button element
+ * @param {HTMLElement} checkboxBtn - The checkbox button element
  */
-function toggleDay(button) {
-    const day = button.dataset.day;
+function toggleDay(checkboxBtn) {
+    const checkbox = checkboxBtn.querySelector('input.day-checkbox');
+    if (!checkbox) return;
     
-    if (button.classList.contains('active')) {
-        button.classList.remove('active');
+    const day = checkbox.dataset.day;
+    
+    if (checkboxBtn.classList.contains('active')) {
+        checkboxBtn.classList.remove('active');
+        checkbox.checked = false;
         selectedDays.delete(day);
     } else {
-        button.classList.add('active');
+        checkboxBtn.classList.add('active');
+        checkbox.checked = true;
         selectedDays.add(day);
     }
 }
