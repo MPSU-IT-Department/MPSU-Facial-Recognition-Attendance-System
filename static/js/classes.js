@@ -977,8 +977,35 @@ function saveClass() {
     const classCode = classCodeInput.value.trim();
     const description = descriptionInput.value.trim();
     const roomNumber = roomNumberInput.value.trim();
-    const schedule = scheduleInput.value.trim();
+    let schedule = scheduleInput.value.trim();
     const instructorId = parseInt(instructorIdSelect.value);
+    
+    console.log('Schedule value:', schedule);
+    
+    // Get any time slots that may have been added
+    const scheduleDisplay = document.getElementById('scheduleDisplay');
+    const slots = scheduleDisplay ? scheduleDisplay.querySelectorAll('.schedule-slot') : [];
+    
+    console.log('Found', slots.length, 'time slots in the display');
+    
+    // If there are slots but the schedule field is empty, let's build a schedule from the slots
+    if (slots.length > 0 && !schedule) {
+        schedule = '';
+        slots.forEach((slot, index) => {
+            const days = slot.querySelector('.days').textContent;
+            const time = slot.querySelector('.time').textContent;
+            
+            schedule += `${days.replace(/,\s*/g, '')} ${time}`;
+            
+            if (index < slots.length - 1) {
+                schedule += ', ';
+            }
+        });
+        
+        // Update the hidden schedule field
+        scheduleInput.value = schedule;
+        console.log('Built schedule from slots:', schedule);
+    }
     
     // Validate form
     if (!classCode) {
@@ -999,9 +1026,25 @@ function saveClass() {
         return;
     }
     
+    // Final check for schedule
+    schedule = scheduleInput.value.trim();
     if (!schedule) {
-        alert('Please set a schedule');
-        return;
+        // Check if we have time inputs that can be used to create a schedule
+        const startTime = document.getElementById('startTime');
+        const endTime = document.getElementById('endTime');
+        const selectedDays = getSelectedDays ? getSelectedDays() : [];
+        
+        if (startTime && endTime && startTime.value && endTime.value && selectedDays.length > 0) {
+            // Build a schedule from the current inputs
+            const formattedStartTime = formatTime ? formatTime(startTime.value) : startTime.value;
+            const formattedEndTime = formatTime ? formatTime(endTime.value) : endTime.value;
+            schedule = `${selectedDays.join('')} ${formattedStartTime} - ${formattedEndTime}`;
+            scheduleInput.value = schedule;
+            console.log('Created schedule from current inputs:', schedule);
+        } else {
+            alert('Please set a schedule by adding at least one time slot');
+            return;
+        }
     }
     
     if (!instructorId) {

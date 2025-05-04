@@ -186,7 +186,7 @@
                             <div class="day-selection mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="mb-0">Select Days:</label>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetDaysBtn">Reset Days</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetDaysBtn" onclick="event.preventDefault(); resetSelectedDays();">Reset Days</button>
                                 </div>
                                 <div class="day-buttons">
                                     <label class="checkbox-btn">
@@ -247,9 +247,9 @@
                             
                             <!-- Schedule Display and Final Value -->
                             <div class="schedule-display mb-3">
-                                <label>Current Schedule:</label>
+                                <label>Selected Time Slots:</label>
                                 <div id="scheduleDisplay" class="border rounded p-2 bg-light">
-                                    <span class="text-muted">No schedule set</span>
+                                    <span class="text-muted">No time slots added</span>
                                 </div>
                             </div>
                             

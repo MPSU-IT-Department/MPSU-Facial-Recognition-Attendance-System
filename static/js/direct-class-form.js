@@ -11,67 +11,84 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addTimeBtn) {
         console.log('Add time button handler set up');
         
-        addTimeBtn.addEventListener('click', function() {
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
-            const selectedDays = getSelectedDays();
-            
-            // Validation
-            if (!startTime || !endTime) {
-                alert('Please select both start and end times');
-                return;
-            }
-            
-            if (selectedDays.length === 0) {
-                alert('Please select at least one day');
-                return;
-            }
-            
-            // Validate time range
-            if (startTime >= endTime) {
-                alert('End time must be after start time');
-                return;
-            }
-            
-            // Generate a unique ID for this slot
-            const slotId = 'slot_' + new Date().getTime();
-            
-            // Create a new time slot object
-            const slot = {
-                id: slotId,
-                days: selectedDays,
-                startTime: startTime,
-                endTime: endTime
-            };
-            
-            // Add the time slot to the schedule
-            if (typeof addTimeSlot === 'function') {
-                addTimeSlot(slot);
-                // Show success notification
-                showNotification('Time slot added successfully!');
-            } else {
-                // Fallback if the main function isn't available
-                addTimeSlotFallback(slot);
-                // Show success notification
-                showNotification('Time slot added successfully!');
-            }
-            
-            // Reset inputs
-            document.getElementById('startTime').value = '';
-            document.getElementById('endTime').value = '';
-            resetSelectedDays();
-        });
+        // Use a single click handler to prevent multiple alerts
+        addTimeBtn.addEventListener('click', handleAddTimeClick);
     }
     
-    // Set up day button click handlers if the schedule builder functions aren't available
+    // Set up day button handlers if needed
     setupDayButtonHandlers();
     
     // Reset days button
     const resetDaysBtn = document.getElementById('resetDaysBtn');
     if (resetDaysBtn) {
-        resetDaysBtn.addEventListener('click', resetSelectedDays);
+        resetDaysBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent form submission
+            resetSelectedDays();
+        });
     }
 });
+
+/**
+ * Handle the add time button click
+ */
+function handleAddTimeClick() {
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    const selectedDays = getSelectedDays();
+    
+    // Validation
+    if (!startTime || !endTime) {
+        alert('Please select both start and end times');
+        return;
+    }
+    
+    if (selectedDays.length === 0) {
+        alert('Please select at least one day');
+        return;
+    }
+    
+    // Validate time range
+    if (startTime >= endTime) {
+        alert('End time must be after start time');
+        return;
+    }
+    
+    // Generate a unique ID for this slot
+    const slotId = 'slot_' + new Date().getTime();
+    
+    // Create a new time slot object
+    const slot = {
+        id: slotId,
+        days: selectedDays,
+        startTime: startTime,
+        endTime: endTime
+    };
+    
+    // Add the time slot to the schedule
+    if (typeof addTimeSlot === 'function') {
+        addTimeSlot(slot);
+        // Show success notification
+        showNotification('Time slot added successfully!');
+    } else {
+        // Fallback if the main function isn't available
+        addTimeSlotFallback(slot);
+        // Show success notification
+        showNotification('Time slot added successfully!');
+    }
+    
+    // Update the hidden schedule field with the new format
+    const scheduleField = document.getElementById('schedule');
+    if (scheduleField) {
+        // Set a default value for the schedule even if there are no slots
+        if (!scheduleField.value) {
+            const currentDays = selectedDays.join('');
+            scheduleField.value = `${currentDays} ${formatTime(startTime)} - ${formatTime(endTime)}`;
+        }
+    }
+    
+    // Reset inputs but keep the times for convenience
+    resetSelectedDays();
+}
 
 /**
  * Get the currently selected days
@@ -94,6 +111,7 @@ function resetSelectedDays() {
     dayCheckboxes.forEach(checkbox => {
         checkbox.checked = false;
     });
+    console.log('Days reset');
 }
 
 /**
