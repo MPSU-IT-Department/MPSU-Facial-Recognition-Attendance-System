@@ -8,6 +8,14 @@ from forms import ClassForm
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 
+@courses_bp.route('/api/list', methods=['GET'])
+@login_required
+def get_courses():
+    """API endpoint to get all unique courses"""
+    courses = db.session.query(Class.class_code, Class.description).distinct().all()
+    course_list = [{'code': code, 'description': desc} for code, desc in courses]
+    return jsonify(course_list)
+
 @courses_bp.route('/manage', methods=['GET'])
 @login_required
 def manage():
@@ -43,9 +51,30 @@ def add():
         flash(f'A course with code "{class_code}" already exists.', 'danger')
         return redirect(url_for('courses.manage'))
     
-    # We're not actually adding a course directly, but rather noting the course code and description
-    # for use when creating actual classes in the class management section
-    flash(f'Course "{class_code}: {description}" has been added.', 'success')
+    try:
+        # Create a placeholder class with this course code and description
+        # It won't be visible in the class schedule until fully configured
+        # with a room, schedule, and instructor
+        from models import User
+        admin_user = User.query.filter_by(role='admin').first()
+        
+        new_class = Class(
+            class_code=class_code,
+            description=description,
+            room_number="TBD",  # Placeholder
+            schedule="TBD",     # Placeholder
+            instructor_id=admin_user.id,  # Default to admin as placeholder
+            created_at=datetime.datetime.utcnow()
+        )
+        
+        db.session.add(new_class)
+        db.session.commit()
+        
+        flash(f'Course "{class_code}: {description}" has been added.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding course: {str(e)}', 'danger')
+    
     return redirect(url_for('courses.manage'))
 
 @courses_bp.route('/update', methods=['POST'])

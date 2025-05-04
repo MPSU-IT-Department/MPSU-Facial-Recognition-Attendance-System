@@ -24,7 +24,6 @@
                 <!-- Admin Menu Items -->
                 <a href="{{ url_for('students.enroll') }}" class="menu-item {% if request.endpoint == 'students.enroll' %}active{% endif %}">Manage Students</a>
                 <a href="{{ url_for('classes.schedule') }}" class="menu-item {% if request.endpoint == 'classes.schedule' %}active{% endif %}">Manage Classes</a>
-                <a href="{{ url_for('attendance.manage') }}" class="menu-item {% if request.endpoint == 'attendance.manage' %}active{% endif %}">Student Attendance</a>
                 <a href="{{ url_for('instructors.manage') }}" class="menu-item {% if request.endpoint == 'instructors.manage' %}active{% endif %}">Manage Instructors</a>
                 <a href="{{ url_for('courses.manage') }}" class="menu-item {% if request.endpoint == 'courses.manage' %}active{% endif %}">Manage Courses</a>
             {% else %}
@@ -47,7 +46,7 @@
                 <p class="user-role">{{ current_user.role|title }}</p>
             </div>
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+        <a href="/auth/logout" class="logout-btn">Logout</a>
     </div>
     {% endif %}
     
