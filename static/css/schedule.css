@@ -1,73 +1,400 @@
-/* Schedule Builder Styles */
-.schedule-builder {
+/* Schedule CSS Styles */
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 
-.day-selection .btn-group-toggle {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+.header-title {
+    font-weight: bold;
+    color: #23272b;
+    font-size: 28px;
+    margin-bottom: 0;
 }
 
-.day-btn {
-    padding: 6px 12px;
-    border-radius: 4px;
+.btn-add-class {
+    background-color: #17ce9a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-add-class:hover {
+    background-color: #15b889;
+}
+
+.search-add-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    display: flex;
+    max-width: 400px;
+    width: 100%;
+}
+
+.search-box input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-box input:focus {
+    border-color: #17ce9a;
+}
+
+.search-btn {
+    background-color: #17ce9a;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+    background-color: #15b889;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.table thead th {
+    vertical-align: middle;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    text-align: left;
+}
+
+.table tbody td {
+    padding: 16px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: #767676;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
     transition: all 0.2s;
 }
 
-.day-btn.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-}
-
-#scheduleDisplay {
-    min-height: 40px;
-}
-
-.schedule-tag {
-    display: inline-block;
-    background-color: #e9ecef;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    padding: 4px 8px;
-    margin: 2px;
-    font-size: 0.9rem;
-}
-
-.schedule-tag .remove-schedule {
-    margin-left: 5px;
-    color: #dc3545;
-    cursor: pointer;
-}
-
-.time-selection .row {
-    align-items: flex-end;
-}
-
-/* Clickable row styling */
-.clickable-row {
-    cursor: pointer;
-}
-
-.clickable-row:hover {
+.action-btn.edit-class:hover {
+    color: #007bff;
     background-color: rgba(0, 123, 255, 0.1);
 }
 
-/* Fix for dropdown styling */
-select.form-control {
-    -webkit-appearance: menulist-button;
-    appearance: menulist-button;
-    position: relative;
-    z-index: auto;
+.action-btn.delete-class:hover {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
 }
 
-/* This prevents unwanted dropdowns showing */
-#course option {
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+    background-color: rgba(23, 206, 154, 0.05);
+}
+
+/* Modal styles */
+.modal-overlay {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    justify-content: center;
+    align-items: center;
 }
 
-#course:focus option {
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-dialog {
+    max-width: 600px;
+    width: 100%;
+    margin: 1.75rem auto;
+    pointer-events: none;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    outline: 0;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal-overlay.show .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #23272b;
+    margin-bottom: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    opacity: 0.5;
+    padding: 0;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    opacity: 0.75;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
     display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 80%;
+    color: #6c757d;
+}
+
+.btn-save {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #17ce9a;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1.5rem;
+}
+
+.btn-save:hover {
+    background-color: #15b889;
+}
+
+/* Schedule Builder Styles */
+.schedule-builder {
+    margin-top: 10px;
+}
+
+.day-btn {
+    margin-right: 4px;
+    margin-bottom: 4px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.day-btn.active {
+    background-color: #17ce9a;
+    color: white;
+    border-color: #17ce9a;
+}
+
+.schedule-display {
+    min-height: 60px;
+}
+
+.schedule-slot {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 6px 12px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.schedule-slot .days {
+    font-weight: 600;
+    margin-right: 10px;
+    min-width: 50px;
+}
+
+.schedule-slot .time {
+    flex-grow: 1;
+}
+
+.btn-remove-slot {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 0 6px;
+    font-size: 1rem;
+}
+
+.btn-remove-slot:hover {
+    opacity: 0.8;
+}
+
+/* Confirmation Modal Styles */
+.confirmation-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-yes {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-yes:hover {
+    background-color: #c82333;
+}
+
+.btn-no {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-no:hover {
+    background-color: #5a6268;
+}
+
+/* Back Button Style */
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .btn-add-class {
+        margin-top: 10px;
+    }
+    
+    .search-add-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .search-box {
+        max-width: 100%;
+        margin-bottom: 10px;
+    }
 }

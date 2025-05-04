@@ -275,6 +275,10 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Include only the direct handler for class form submissions -->
+<!-- Include the schedule builder script -->
+<script src="{{ url_for('static', filename='js/schedule-builder.js') }}"></script>
+<!-- Include the main classes script -->
+<script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+<!-- Include the direct handler for class form submissions -->
 <script src="{{ url_for('static', filename='js/direct-class-form.js') }}"></script>
 {% endblock %}

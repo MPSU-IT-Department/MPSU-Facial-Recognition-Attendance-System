@@ -1,1153 +1,1185 @@
 /**
- * Class Management System
- * Handles CRUD operations for classes and student enrollment
+ * Classes Management JavaScript
+ * Handles the UI interactions for managing classes
  */
-document.addEventListener('DOMContentLoaded', () => {
-    // DOM element references
-    const elements = {
-        // Views
-        classesView: document.getElementById('classes-view'),
-        classDetailView: document.getElementById('class-detail-view'),
-        studentSelectionView: document.getElementById('student-selection-view'),
-        // Navigation buttons
-        backToClasses: document.getElementById('back-to-classes'),
-        backToClassDetail: document.getElementById('back-to-class-detail'),
-        enrollStudentBtn: document.getElementById('enroll-student-btn'),
-        // Tables
-        classesTableBody: document.getElementById('classes-table-body'),
-        enrolledStudentsList: document.getElementById('enrolled-students-list'),
-        allStudentsList: document.getElementById('all-students-list'),
-        // Class form elements
-        addClassBtn: document.getElementById('add-class-btn'),
-        classModal: document.getElementById('class-modal'),
-        closeClassModal: document.getElementById('close-class-modal'),
-        classForm: document.getElementById('class-form'),
-        classTitle: document.getElementById('class-modal-title'),
-        // Confirmation modal
-        confirmationModal: document.getElementById('confirmation-modal'),
-        confirmationText: document.getElementById('confirmation-text'),
-        confirmYes: document.getElementById('confirm-yes'),
-        confirmNo: document.getElementById('confirm-no')
-    };
+
+// Wait for the DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Classes page initialized');
     
-    // Log DOM elements to help debug
-    console.log('DOM Elements:', {
-        classesTableBody: elements.classesTableBody,
-        classesView: elements.classesView,
-        addClassBtn: elements.addClassBtn
-    });
+    // Fetch initial data
+    fetchClasses();
+    
+    // Populate courses dropdown
+    populateCourseDropdown();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Set up course change handler
+    setupCourseChangeHandler();
+});
 
-    // Application state
-    const state = {
-        classes: [],
-        students: [],
-        courses: [],
-        currentClassId: null,
-        studentToUnenroll: null,
-        isEditingClass: false
-    };
+// Global variables to track state
+let classes = [];
+let selectedClassId = null;
+let currentView = 'classes'; // 'classes', 'class-detail', 'student-selection'
+let courses = [];
 
-    // Initialize the application
-    init();
-
-    // Add event listeners
-    function addEventListeners() {
-        // Navigation
-        if (elements.backToClasses) {
-            elements.backToClasses.addEventListener('click', showClassesView);
-        }
-        if (elements.backToClassDetail) {
-            elements.backToClassDetail.addEventListener('click', () => {
-                showClassDetailView(state.currentClassId);
-            });
-        }
-        if (elements.enrollStudentBtn) {
-            elements.enrollStudentBtn.addEventListener('click', showStudentSelectionView);
-        }
-
-        // Class modal
-        if (elements.addClassBtn) {
-            elements.addClassBtn.addEventListener('click', () => {
-                state.isEditingClass = false;
-                elements.classTitle.textContent = 'Add New Class';
-                elements.classForm.reset();
-                showModal(elements.classModal);
-            });
-        }
-        if (elements.closeClassModal) {
-            elements.closeClassModal.addEventListener('click', () => {
-                hideModal(elements.classModal);
-            });
-        }
-        if (elements.classForm) {
-            elements.classForm.addEventListener('submit', function(e) {
-                console.log('Form submit intercepted');
-                e.preventDefault();
-                
-                // Verify schedule data is present
-                const scheduleInput = document.getElementById('schedule');
-                const scheduleValue = scheduleInput ? scheduleInput.value : '';
-                
-                if (!scheduleValue) {
-                    alert('Please add at least one schedule time slot before saving.');
-                    return false;
-                }
-                
-                // Continue with form submission
-                handleClassFormSubmit(e);
-            });
-        }
+/**
+ * Set up all event listeners for interactive elements
+ */
+function setupEventListeners() {
+    // Add class button
+    const addClassBtn = document.getElementById('add-class-btn');
+    if (addClassBtn) {
+        addClassBtn.addEventListener('click', showAddClassModal);
+    }
+    
+    // Search class input
+    const searchClassInput = document.getElementById('searchClassInput');
+    const searchClassBtn = document.getElementById('searchClassBtn');
+    
+    if (searchClassInput && searchClassBtn) {
+        searchClassBtn.addEventListener('click', function() {
+            searchClasses(searchClassInput.value);
+        });
         
-        // Add time button listener for schedule
-        const addTimeBtn = document.getElementById('addTimeBtn');
-        if (addTimeBtn) {
-            console.log('Setting up direct handler for Add time button');
-            
-            // Remove any existing handlers to prevent duplicates
-            const oldClickHandler = addTimeBtn.onclick;
-            addTimeBtn.onclick = null;
-            
-            addTimeBtn.addEventListener('click', function(event) {
-                console.log('Add time button clicked directly through class.js handler');
-                event.preventDefault();
-                event.stopPropagation();
-                
-                // Get the required inputs
-                const startTime = document.getElementById('startTime').value;
-                const endTime = document.getElementById('endTime').value;
-                
-                if (!startTime || !endTime) {
-                    alert('Please select start and end times');
-                    return;
-                }
-                
-                if (startTime >= endTime) {
-                    alert('End time must be after start time');
-                    return;
-                }
-                
-                // Get selected days
-                const selectedDayButtons = document.querySelectorAll('.day-btn.active');
-                if (selectedDayButtons.length === 0) {
-                    alert('Please select at least one day');
-                    return;
-                }
-                
-                // Manually create the display text
-                const selectedDays = Array.from(selectedDayButtons).map(btn => btn.dataset.day);
-                const displayText = selectedDays.join('') + ' ' + 
-                                    formatTime(startTime) + '-' + 
-                                    formatTime(endTime);
-                
-                // Update the schedule display
-                const scheduleDisplay = document.getElementById('scheduleDisplay');
-                if (scheduleDisplay) {
-                    // If "No schedule set" is showing, clear it
-                    if (scheduleDisplay.querySelector('.text-muted')) {
-                        scheduleDisplay.innerHTML = '';
-                    }
-                    
-                    // Add the new schedule tag
-                    const tag = document.createElement('div');
-                    tag.className = 'schedule-tag';
-                    tag.innerHTML = displayText + 
-                                   '<span class="remove-schedule" data-text="' + displayText + '">&times;</span>';
-                    scheduleDisplay.appendChild(tag);
-                }
-                
-                // Update the hidden input
-                const scheduleInput = document.getElementById('schedule');
-                if (scheduleInput) {
-                    // If the input already has a value, append to it
-                    const currentValue = scheduleInput.value;
-                    scheduleInput.value = currentValue ? 
-                                        currentValue + ', ' + displayText : 
-                                        displayText;
-                                        
-                    console.log('Updated schedule input value:', scheduleInput.value);
-                }
-                
-                // Reset time inputs for next entry
-                document.getElementById('startTime').value = '';
-                document.getElementById('endTime').value = '';
-                
-                // Don't remove day selections to allow adding multiple slots
-            });
-        }
-        
-        // Helper function to format time for display
-        function formatTime(timeStr) {
-            try {
-                const [hours, minutes] = timeStr.split(':');
-                const hour = parseInt(hours, 10);
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                const hour12 = hour % 12 || 12;
-                return `${hour12}:${minutes} ${ampm}`;
-            } catch (e) {
-                console.error('Error formatting time:', e);
-                return timeStr;
-            }
-        }
-
-        // Confirmation modal
-        if (elements.confirmYes) {
-            elements.confirmYes.addEventListener('click', handleConfirmUnenroll);
-        }
-        if (elements.confirmNo) {
-            elements.confirmNo.addEventListener('click', () => {
-                hideModal(elements.confirmationModal);
-                state.studentToUnenroll = null;
-            });
-        }
-
-        // Table click delegation
-        document.addEventListener('click', function(e) {
-            // Edit class button
-            const editClass = e.target.closest('.edit-class');
-            if (editClass) {
-                const classId = parseInt(editClass.dataset.classId);
-                openEditClassModal(classId);
-            }
-            
-            // Delete class button
-            const deleteClass = e.target.closest('.delete-class');
-            if (deleteClass) {
-                const classId = parseInt(deleteClass.dataset.classId);
-                openDeleteClassConfirmation(classId);
-            }
-            
-            // Unenroll button
-            const unenrollBtn = e.target.closest('.unenroll-btn');
-            if (unenrollBtn) {
-                state.studentToUnenroll = {
-                    classId: state.currentClassId,
-                    studentId: unenrollBtn.dataset.studentId
-                };
-                elements.confirmationText.textContent = 'Are you sure you want to unenroll this student?';
-                showModal(elements.confirmationModal);
-            }
-            
-            // Enroll button in student selection view
-            const enrollBtn = e.target.closest('.enroll-btn');
-            if (enrollBtn) {
-                enrollStudent(enrollBtn.dataset.studentId);
+        searchClassInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                searchClasses(searchClassInput.value);
             }
         });
     }
-
-    // Initialize the application
-    async function init() {
-        try {
-            // Try to fetch each resource separately to identify which one is failing
-            let errorMessages = [];
-            let fetchSuccess = true;
-            
-            try {
-                await fetchClasses();
-            } catch (e) {
-                console.error('Error fetching classes:', e);
-                errorMessages.push('classes');
-                fetchSuccess = false;
-                // Default to empty array to allow UI to render
-                state.classes = [];
-            }
-            
-            try {
-                await fetchStudents();
-            } catch (e) {
-                console.error('Error fetching students:', e);
-                errorMessages.push('students');
-                fetchSuccess = false;
-                // Default to empty array to allow UI to render
-                state.students = [];
-            }
-            
-            try {
-                await fetchCourses();
-            } catch (e) {
-                console.error('Error fetching courses:', e);
-                errorMessages.push('courses');
-                fetchSuccess = false;
-                // Default to empty array to allow UI to render
-                state.courses = [];
-            }
-            
-            // Even if some fetches failed, continue with what we have
-            renderClassesTable();
-            addEventListeners();
-            showClassesView();
-            
-            // Show specific error message if any fetch failed
-            if (!fetchSuccess) {
-                let errorMessage = 'Failed to load ' + errorMessages.join(', ') + '. ';
-                errorMessage += 'Some data may be missing. Please refresh the page to try again.';
-                showAlert(errorMessage, 'warning');
-            }
-        } catch (error) {
-            console.error('Initialization error:', error);
-            showAlert('Failed to load data. Please try again by refreshing the page.', 'danger');
-            
-            // Display helpful debug info on the page
-            if (elements.classesTableBody) {
-                elements.classesTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center">
-                            <div class="alert alert-danger mb-0">
-                                <p>Failed to load data. Please try refreshing the page.</p>
-                                <p><small>Error details: ${error.message || 'Unknown error'}</small></p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
-        }
+    
+    // Close class modal
+    const closeClassModalBtn = document.getElementById('close-class-modal');
+    if (closeClassModalBtn) {
+        closeClassModalBtn.addEventListener('click', closeClassModal);
     }
     
-    // Fetch courses from the API
-    async function fetchCourses() {
-        try {
-            console.log('Fetching courses from API...');
-            const response = await fetch('/courses/api/list');
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
-                throw new Error(`Server error: ${response.status} - ${errorText}`);
-            }
-            
-            const data = await response.json();
-            console.log(`Received ${data.length} courses from API`);
-            
-            // Check if the response is an error object
-            if (data.error) {
-                console.error('API returned error:', data.error);
-                throw new Error(`API error: ${data.error}`);
-            }
-            
-            state.courses = Array.isArray(data) ? data : [];
-            populateCourseDropdown();
-            return state.courses;
-        } catch (error) {
-            console.error('Error fetching courses:', error);
-            
-            // Display error in console with more details
-            if (error.message) {
-                console.error('Error message:', error.message);
-            }
-            
-            // Reset the state to empty array to prevent null errors
-            state.courses = [];
-            
-            throw error;
-        }
+    // Class form submission
+    const classForm = document.getElementById('class-form');
+    if (classForm) {
+        classForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveClass();
+        });
     }
     
-    // Populate the course dropdown
-    function populateCourseDropdown() {
-        const courseSelect = document.getElementById('course');
-        if (!courseSelect) return;
-        
-        // Clear existing options except the first one
-        while (courseSelect.options.length > 1) {
-            courseSelect.remove(1);
-        }
-        
-        // Add course options
-        state.courses.forEach(course => {
-            const option = document.createElement('option');
-            option.value = JSON.stringify({code: course.code, description: course.description});
-            option.textContent = `${course.code}: ${course.description}`;
-            courseSelect.appendChild(option);
+    // Close confirmation modal
+    const closeConfirmationModalBtn = document.getElementById('close-confirmation-modal');
+    const confirmNoBtn = document.getElementById('confirm-no');
+    
+    if (closeConfirmationModalBtn && confirmNoBtn) {
+        closeConfirmationModalBtn.addEventListener('click', closeConfirmationModal);
+        confirmNoBtn.addEventListener('click', closeConfirmationModal);
+    }
+    
+    // Confirm delete button
+    const confirmYesBtn = document.getElementById('confirm-yes');
+    if (confirmYesBtn) {
+        confirmYesBtn.addEventListener('click', confirmDeleteClass);
+    }
+    
+    // Back to classes button
+    const backToClassesBtn = document.getElementById('back-to-classes');
+    if (backToClassesBtn) {
+        backToClassesBtn.addEventListener('click', function() {
+            showView('classes');
+        });
+    }
+    
+    // Enroll student button
+    const enrollStudentBtn = document.getElementById('enroll-student-btn');
+    if (enrollStudentBtn) {
+        enrollStudentBtn.addEventListener('click', function() {
+            showView('student-selection');
+            getAllStudents();
+        });
+    }
+    
+    // Back to class detail button
+    const backToClassDetailBtn = document.getElementById('back-to-class-detail');
+    if (backToClassDetailBtn) {
+        backToClassDetailBtn.addEventListener('click', function() {
+            showView('class-detail');
+        });
+    }
+    
+    // Search student input
+    const searchStudentInput = document.getElementById('searchStudentInput');
+    const searchStudentBtn = document.getElementById('searchStudentBtn');
+    
+    if (searchStudentInput && searchStudentBtn) {
+        searchStudentBtn.addEventListener('click', function() {
+            searchStudents(searchStudentInput.value);
         });
         
-        // Add event listener to handle course selection
-        courseSelect.addEventListener('change', handleCourseSelection);
+        searchStudentInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                searchStudents(searchStudentInput.value);
+            }
+        });
     }
+}
+
+/**
+ * Set up the course change handler
+ */
+function setupCourseChangeHandler() {
+    const courseSelect = document.getElementById('course');
+    const classCodeInput = document.getElementById('classCode');
+    const descriptionInput = document.getElementById('description');
     
-    // Handle course selection
-    function handleCourseSelection(e) {
-        const selectedValue = e.target.value;
-        if (!selectedValue) {
-            // Reset fields if no course is selected
-            document.getElementById('classCode').value = '';
-            document.getElementById('description').value = '';
-            return;
-        }
-        
-        try {
-            const courseData = JSON.parse(selectedValue);
-            
-            // Set the hidden description field
-            document.getElementById('description').value = courseData.description;
-            
-            // Generate a suggestion for class code if it's not already set or is the default course code
-            const classCodeInput = document.getElementById('classCode');
-            const currentClassCode = classCodeInput.value;
-            
-            // Only suggest a code if field is empty or matches previous course code
-            if (!currentClassCode || currentClassCode === state.lastSelectedCourseCode) {
-                // If editing, don't change the class code unless it matches the previous suggestion
-                if (!state.isEditingClass) {
-                    // Generate a suggested class code
-                    const existingCodes = state.classes
-                        .filter(c => (c.class_code || c.classCode || '').startsWith(courseData.code))
-                        .map(c => c.class_code || c.classCode || '');
-                    
-                    if (existingCodes.length === 0) {
-                        // First section with this course code
-                        classCodeInput.value = courseData.code;
-                    } else {
-                        // Find the next available section letter (A, B, C, etc.)
-                        let sectionLetter = 'A';
-                        while (existingCodes.includes(`${courseData.code}-${sectionLetter}`)) {
-                            sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
+    if (courseSelect && classCodeInput && descriptionInput) {
+        courseSelect.addEventListener('change', function() {
+            const selectedCourse = courseSelect.value;
+            if (selectedCourse) {
+                // Find the course details
+                const course = courses.find(c => c.code === selectedCourse);
+                if (course) {
+                    // Auto-fill the class code (course code + section) and description
+                    // Only do this for new classes, not for edits
+                    if (!selectedClassId) {
+                        // Generate next available section (A, B, C, etc.)
+                        const courseClasses = classes.filter(c => c.classCode.startsWith(selectedCourse));
+                        const sections = courseClasses.map(c => c.classCode.split('-')[1] || '');
+                        
+                        let nextSection = 'A';
+                        // Find next available section letter
+                        while (sections.includes(nextSection)) {
+                            nextSection = String.fromCharCode(nextSection.charCodeAt(0) + 1);
                         }
-                        classCodeInput.value = `${courseData.code}-${sectionLetter}`;
+                        
+                        classCodeInput.value = `${selectedCourse}-${nextSection}`;
                     }
+                    
+                    // Set the description from the course
+                    descriptionInput.value = course.description;
                 }
             }
-            
-            // Store the last selected course code for comparison
-            state.lastSelectedCourseCode = courseData.code;
-            
-        } catch (error) {
-            console.error('Error parsing course data:', error);
-        }
+        });
     }
+}
 
-    // Fetch classes from the API
-    async function fetchClasses() {
-        try {
-            console.log('Fetching classes from API...');
-            
-            // Add a timestamp to prevent caching issues
-            const response = await fetch(`/classes/api/list?t=${Date.now()}`);
-            
+/**
+ * Fetch all classes from the API
+ */
+function fetchClasses() {
+    const classesTableBody = document.getElementById('classes-table-body');
+    if (!classesTableBody) return;
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    fetch(`/classes/api/list?_=${timestamp}`)
+        .then(response => {
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
-                
-                // Check if we're redirected to login page (session expired)
-                if (errorText.includes('/auth/login') || response.status === 302) {
-                    state.error = 'Your session has expired. Please <a href="/auth/login">login again</a>';
-                    console.log('Session expired, redirecting to login page');
-                    window.location.href = '/auth/login';
-                    throw new Error('Session expired');
-                }
-                
-                throw new Error(`Server error: ${response.status} - ${errorText.substring(0, 100)}`);
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            
-            const data = await response.json();
-            console.log(`Received ${data.length} classes from API`);
-            
-            // Check if the response is an error object
-            if (data.error) {
-                console.error('API returned error:', data.error);
-                state.error = data.error;
-                throw new Error(`API error: ${data.error}`);
-            }
-            
-            // Update state with the classes data
-            state.error = null; // Clear any previous errors
-            state.classes = Array.isArray(data) ? data : [];
-            return state.classes;
-        } catch (error) {
+            return response.json();
+        })
+        .then(data => {
+            console.log('Classes data:', data);
+            classes = data;
+            renderClassesTable();
+        })
+        .catch(error => {
             console.error('Error fetching classes:', error);
-            
-            // Display error in console with more details
-            if (error.message) {
-                console.error('Error message:', error.message);
-                // Set error state for UI display
-                if (!state.error) {
-                    state.error = error.message;
-                }
-            }
-            
-            // Reset the state to empty array to prevent null errors
-            state.classes = [];
-            
-            throw error;
-        }
-    }
-
-    // Fetch students from the API
-    async function fetchStudents() {
-        try {
-            console.log('Fetching students from API...');
-            
-            // Add a timestamp to prevent caching issues
-            const response = await fetch(`/students/api/list?t=${Date.now()}`);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
-                
-                // Check if we're redirected to login page (session expired)
-                if (errorText.includes('/auth/login') || response.status === 302) {
-                    state.error = 'Your session has expired. Please <a href="/auth/login">login again</a>';
-                    console.log('Session expired, redirecting to login page');
-                    return [];
-                }
-                
-                throw new Error(`Server error: ${response.status} - ${errorText.substring(0, 100)}`);
-            }
-            
-            const data = await response.json();
-            console.log(`Received ${data.length} students from API`);
-            
-            // Check if the response is an error object
-            if (data.error) {
-                console.error('API returned error:', data.error);
-                throw new Error(`API error: ${data.error}`);
-            }
-            
-            state.students = Array.isArray(data) ? data : [];
-            return state.students;
-        } catch (error) {
-            console.error('Error fetching students:', error);
-            
-            // Display error in console with more details
-            if (error.message) {
-                console.error('Error message:', error.message);
-            }
-            
-            // Reset the state to empty array to prevent null errors
-            state.students = [];
-            
-            throw error;
-        }
-    }
-
-    // Show Classes View
-    function showClassesView() {
-        hideAllViews();
-        if (elements.classesView) {
-            elements.classesView.classList.remove('d-none');
-            state.currentClassId = null;
-            renderClassesTable();
-        } else {
-            console.error('Classes view element not found');
-        }
-    }
-
-    // Show Class Detail View
-    async function showClassDetailView(classId) {
-        state.currentClassId = classId;
-        const classData = state.classes.find(c => c.id === classId);
-        
-        if (!classData) {
-            showAlert('Class not found', 'danger');
-            return showClassesView();
-        }
-        
-        const titleElement = document.getElementById('class-detail-title');
-        if (titleElement) {
-            titleElement.textContent = classData.description;
-        }
-        
-        // Get students enrolled in this class
-        try {
-            const response = await fetch(`/classes/api/${classId}/students`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const students = await response.json();
-            renderEnrolledStudents(students);
-            
-            hideAllViews();
-            if (elements.classDetailView) {
-                elements.classDetailView.classList.remove('d-none');
-            } else {
-                console.error('Class detail view element not found');
-                showAlert('Error displaying class details', 'danger');
-            }
-            
-        } catch (error) {
-            console.error('Error fetching enrolled students:', error);
-            showAlert('Failed to load enrolled students', 'danger');
-        }
-    }
-
-    // Show Student Selection View
-    function showStudentSelectionView() {
-        hideAllViews();
-        if (elements.studentSelectionView) {
-            elements.studentSelectionView.classList.remove('d-none');
-            renderAvailableStudents();
-        } else {
-            console.error('Student selection view element not found');
-            showAlert('Error displaying student selection', 'danger');
-        }
-    }
-
-    // Hide all views
-    function hideAllViews() {
-        if (elements.classesView) elements.classesView.classList.add('d-none');
-        if (elements.classDetailView) elements.classDetailView.classList.add('d-none');
-        if (elements.studentSelectionView) elements.studentSelectionView.classList.add('d-none');
-    }
-
-    // Render the classes table
-    function renderClassesTable() {
-        if (!elements.classesTableBody) return;
-        
-        elements.classesTableBody.innerHTML = '';
-        
-        // If we're in an error state or have an empty array, show appropriate message
-        if (state.classes.length === 0) {
-            const row = document.createElement('tr');
-            
-            // Check if we're in an error state
-            if (state.error) {
-                row.innerHTML = `
-                    <td colspan="7" class="text-center">
-                        <div class="alert alert-warning">
-                            Error loading classes: ${state.error}<br>
-                            <a href="/classes/schedule" class="alert-link">Refresh the page</a> to try again.
-                        </div>
+            classesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        Error loading classes. Please try again later.<br>
+                        <small>${error.message}</small>
                     </td>
-                `;
-            } else {
-                // Just empty state
-                row.innerHTML = `
-                    <td colspan="7" class="text-center">No classes found</td>
-                `;
-            }
-            
-            elements.classesTableBody.appendChild(row);
-            return;
-        }
-        
-        state.classes.forEach(classData => {
-            const row = document.createElement('tr');
-            
-            // Store the class ID in dataset for reference
-            row.dataset.classId = classData.id;
-            
-            row.innerHTML = `
-                <td>${classData.class_code || classData.classCode}</td>
-                <td>${classData.description}</td>
-                <td>${classData.roomNumber}</td>
-                <td>${classData.schedule}</td>
-                <td>${classData.enrolledCount}</td>
-                <td>${classData.instructorName}</td>
-                <td>
-                    <button class="action-btn edit-class" data-class-id="${classData.id}" title="Edit Class">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn delete-class" data-class-id="${classData.id}" title="Delete Class">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
+                </tr>
             `;
             
-            elements.classesTableBody.appendChild(row);
+            // Show a retry button
+            const retryButton = document.createElement('button');
+            retryButton.textContent = 'Retry';
+            retryButton.className = 'btn btn-sm btn-primary mt-2';
+            retryButton.addEventListener('click', () => {
+                classesTableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading classes...</td></tr>';
+                fetchClasses();
+            });
             
-            // Add click event to the row only for instructors
-            const isInstructor = document.querySelector('.user-role')?.textContent.trim().toLowerCase() === 'instructor';
-            if (isInstructor) {
-                row.addEventListener('click', function(e) {
-                    // If the click was on an action button, don't navigate to details
-                    if (e.target.closest('.action-btn')) return;
-                    
-                    showClassDetailView(parseInt(this.dataset.classId));
-                });
-                // Add clickable class to show it's interactive
-                row.classList.add('clickable-row');
-            }
+            classesTableBody.querySelector('td').appendChild(retryButton);
         });
-    }
+}
 
-    // Render enrolled students
-    function renderEnrolledStudents(students) {
-        if (!elements.enrolledStudentsList) return;
-        
-        elements.enrolledStudentsList.innerHTML = '';
-        
-        if (students.length === 0) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td colspan="5" class="text-center">No students enrolled</td>
-            `;
-            elements.enrolledStudentsList.appendChild(row);
-            return;
-        }
-        
-        // Get current user role from the page
-        const isInstructor = document.querySelector('.user-role')?.textContent.trim().toLowerCase() === 'instructor';
-        
-        students.forEach(student => {
-            const row = document.createElement('tr');
-            
-            // Only show unenroll button for instructors
-            const actionColumn = isInstructor ? `
-                <td>
-                    <button class="btn btn-danger btn-sm unenroll-btn" data-student-id="${student.id}">
-                        Unenroll
-                    </button>
-                </td>
-            ` : '<td>-</td>';
-            
-            row.innerHTML = `
-                <td>${student.firstName} ${student.lastName}</td>
-                <td>${student.id}</td>
-                <td>${student.yearLevel}</td>
-                <td>${student.phone}</td>
-                ${actionColumn}
-            `;
-            
-            elements.enrolledStudentsList.appendChild(row);
-        });
+/**
+ * Render the classes table with the current data
+ */
+function renderClassesTable() {
+    const classesTableBody = document.getElementById('classes-table-body');
+    if (!classesTableBody) return;
+    
+    if (classes.length === 0) {
+        classesTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">No classes found</td>
+            </tr>
+        `;
+        return;
     }
-
-    // Render available students for enrollment
-    function renderAvailableStudents() {
-        if (!elements.allStudentsList || !state.currentClassId) return;
+    
+    classesTableBody.innerHTML = '';
+    
+    classes.forEach(cls => {
+        const row = document.createElement('tr');
+        row.className = 'clickable-row';
+        row.dataset.classId = cls.id;
         
-        elements.allStudentsList.innerHTML = '';
-        
-        // Get students already enrolled in this class
-        const enrolledStudentIds = new Set();
-        
-        // Fetch enrolled students for this class
-        fetch(`/classes/api/${state.currentClassId}/students`)
-            .then(response => response.json())
-            .then(enrolledStudents => {
-                // Create a set of enrolled student IDs
-                enrolledStudents.forEach(student => {
-                    enrolledStudentIds.add(student.id);
-                });
-                
-                // Render all students, disabling the already enrolled ones
-                state.students.forEach(student => {
-                    const isEnrolled = enrolledStudentIds.has(student.id);
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${student.firstName} ${student.lastName}</td>
-                        <td>${student.id}</td>
-                        <td>${student.yearLevel}</td>
-                        <td>${student.phone}</td>
-                        <td>
-                            ${isEnrolled ? 
-                                '<button class="btn btn-secondary btn-sm" disabled>Enrolled</button>' :
-                                `<button class="btn btn-success btn-sm enroll-btn" data-student-id="${student.id}">Enroll</button>`
-                            }
-                        </td>
-                    `;
-                    
-                    elements.allStudentsList.appendChild(row);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching enrolled students:', error);
-                showAlert('Failed to load student enrollment data', 'danger');
-            });
-    }
-
-    // Open edit class modal
-    function openEditClassModal(classId) {
-        const classData = state.classes.find(c => c.id === classId);
-        if (!classData) return;
-        
-        // Set form fields
-        document.getElementById('classCode').value = classData.class_code || classData.classCode; // Handle different property names
-        document.getElementById('description').value = classData.description;
-        document.getElementById('roomNumber').value = classData.roomNumber;
-        document.getElementById('schedule').value = classData.schedule;
-        document.getElementById('instructorId').value = classData.instructorId;
-        document.getElementById('classId').value = classData.id;
-        
-        // Set editing state flag to true
-        state.isEditingClass = true;
-        
-        // Set up schedule builder with existing schedule
-        if (window.setupScheduleBuilder && typeof window.setupScheduleBuilder === 'function') {
-            window.setupScheduleBuilder(classData.schedule);
-        }
-        
-        // Set course dropdown
-        const courseSelect = document.getElementById('course');
-        if (courseSelect) {
-            // Try to find the matching course
-            let found = false;
-            for (let i = 0; i < courseSelect.options.length; i++) {
-                const option = courseSelect.options[i];
-                if (!option.value) continue;
-                
-                try {
-                    const courseData = JSON.parse(option.value);
-                    // Extract the base course code from the class code
-                    const classCode = classData.class_code || classData.classCode;
-                    // If class code is something like "ITP321-A", we just need "ITP321" 
-                    const baseCourseCode = classCode.split('-')[0];
-                    
-                    if (courseData.code === baseCourseCode) {
-                        courseSelect.selectedIndex = i;
-                        found = true;
-                        break;
-                    }
-                } catch (error) {
-                    console.error('Error parsing course option:', error);
-                }
-            }
-            
-            // If no matching course found, reset to first option
-            if (!found) {
-                courseSelect.selectedIndex = 0;
-            }
-        }
-        
-        // Set state and modal title
-        state.isEditingClass = true;
-        elements.classTitle.textContent = 'Edit Class';
-        
-        // Show modal
-        showModal(elements.classModal);
-    }
-
-    // Open delete class confirmation
-    function openDeleteClassConfirmation(classId) {
-        const classData = state.classes.find(c => c.id === classId);
-        if (!classData) return;
-        
-        state.currentClassId = classId;
-        
-        elements.confirmationText.textContent = `Are you sure you want to delete class "${classData.description}"?`;
-        
-        // Set up handler for confirmation
-        const originalHandler = elements.confirmYes.onclick;
-        elements.confirmYes.onclick = async () => {
-            try {
-                const response = await fetch(`/classes/api/delete/${classId}`, {
-                    method: 'DELETE'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Remove from state
-                    state.classes = state.classes.filter(c => c.id !== classId);
-                    
-                    // Update UI
-                    renderClassesTable();
-                    
-                    showAlert('Class deleted successfully', 'success');
-                } else {
-                    showAlert(data.message || 'Failed to delete class', 'danger');
-                }
-                
-            } catch (error) {
-                console.error('Error deleting class:', error);
-                showAlert('An error occurred while deleting the class', 'danger');
-            }
-            
-            // Reset handler and hide modal
-            elements.confirmYes.onclick = originalHandler;
-            hideModal(elements.confirmationModal);
-        };
-        
-        // Show confirmation modal
-        showModal(elements.confirmationModal);
-    }
-
-    // Handle class form submission
-    async function handleClassFormSubmit(e) {
-        e.preventDefault();
-        
-        const form = e.target;
-        const formData = new FormData(form);
-        
-        // Debugging form data
-        for (let [key, value] of formData.entries()) {
-            console.log(`Form data - ${key}:`, value);
-        }
-        
-        // Double check for required fields
-        const classCode = formData.get('classCode');
-        const roomNumber = formData.get('roomNumber');
-        const instructorId = formData.get('instructorId');
-        
-        if (!classCode || !roomNumber || !instructorId) {
-            alert('Please fill in all required fields (Class Code, Room Number, and Instructor)');
-            return;
-        }
-        
-        // Get the schedule from the display div directly first, as it's most reliable
-        let scheduleValue = '';
-        const scheduleDisplay = document.getElementById('scheduleDisplay');
-        
-        if (scheduleDisplay) {
-            // First check if we have schedule tags
-            const scheduleTags = scheduleDisplay.querySelectorAll('.schedule-tag');
-            
-            if (scheduleTags && scheduleTags.length > 0) {
-                // Extract text from each tag (excluding the "×" button)
-                const scheduleTexts = Array.from(scheduleTags).map(tag => {
-                    // Clone to safely manipulate
-                    const clone = tag.cloneNode(true);
-                    const removeBtn = clone.querySelector('.remove-schedule');
-                    if (removeBtn) removeBtn.remove();
-                    return clone.textContent.trim();
-                });
-                
-                // Join the schedules
-                scheduleValue = scheduleTexts.join(', ');
-                console.log('Recovered schedule from display tags:', scheduleValue);
-            } 
-            // If no tags but also no "No schedule set" text, check direct text content
-            else if (!scheduleDisplay.querySelector('.text-muted') && 
-                    scheduleDisplay.textContent.trim() !== 'No schedule set' &&
-                    scheduleDisplay.textContent.trim() !== '') {
-                scheduleValue = scheduleDisplay.textContent.trim();
-                console.log('Recovered schedule from display text:', scheduleValue);
-            }
-        }
-        
-        // If we still don't have a schedule, check the input as a backup
-        if (!scheduleValue) {
-            const scheduleInput = document.getElementById('schedule');
-            if (scheduleInput && scheduleInput.value) {
-                scheduleValue = scheduleInput.value;
-                console.log('Using schedule from input field:', scheduleValue);
-            }
-        }
-        
-        // If we still have no schedule, alert user
-        if (!scheduleValue) {
-            alert('Please add at least one schedule time slot before saving.');
-            return;
-        }
-        
-        // Update the form data with our recovered schedule
-        formData.set('schedule', scheduleValue);
-        
-        // Also update the schedule input for consistency
-        const scheduleInput = document.getElementById('schedule');
-        if (scheduleInput) {
-            scheduleInput.value = scheduleValue;
-        }
-        
-        console.log('Final schedule value being submitted:', scheduleValue);
-        
-        const classData = {
-            classCode: formData.get('classCode'),
-            description: formData.get('description'),
-            roomNumber: formData.get('roomNumber'),
-            schedule: scheduleValue, // Use the recovered schedule value
-            instructorId: parseInt(formData.get('instructorId'))
-        };
-        
-        console.log('Sending class data to server:', classData);
-        
-        try {
-            let response;
-            
-            if (state.isEditingClass) {
-                // Update existing class
-                const classId = formData.get('classId');
-                response = await fetch(`/classes/api/update/${classId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(classData)
-                });
-            } else {
-                // Create new class
-                response = await fetch('/classes/api/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(classData)
-                });
-            }
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                if (state.isEditingClass) {
-                    // Update in state with complete class data from server
-                    const index = state.classes.findIndex(c => c.id === parseInt(formData.get('classId')));
-                    if (index !== -1) {
-                        if (data.class) {
-                            // Use complete class data from server if available
-                            state.classes[index] = data.class;
-                        } else {
-                            // Fallback to just updating fields from form
-                            state.classes[index] = {
-                                ...state.classes[index],
-                                ...classData
-                            };
-                            
-                            // Update instructor name by getting the selected option text
-                            const instructorSelect = document.getElementById('instructorId');
-                            if (instructorSelect && instructorSelect.selectedIndex >= 0) {
-                                const selectedOption = instructorSelect.options[instructorSelect.selectedIndex];
-                                state.classes[index].instructorName = selectedOption.text;
-                            }
-                        }
-                    }
-                    
-                    showAlert('Class updated successfully', 'success');
-                } else {
-                    // Add to state
-                    state.classes.push(data.class);
-                    
-                    showAlert('Class created successfully', 'success');
-                }
-                
-                // Update UI and close modal
-                renderClassesTable();
-                hideModal(elements.classModal);
-                form.reset();
-                
-            } else {
-                showAlert(data.message || 'Failed to save class', 'danger');
-            }
-            
-        } catch (error) {
-            console.error('Error saving class:', error);
-            showAlert('An error occurred while saving the class', 'danger');
-        }
-    }
-
-    // Handle confirm unenroll
-    async function handleConfirmUnenroll() {
-        if (!state.studentToUnenroll) return;
-        
-        try {
-            const { classId, studentId } = state.studentToUnenroll;
-            
-            const response = await fetch(`/classes/api/${classId}/unenroll/${studentId}`, {
-                method: 'DELETE'
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Update UI by refreshing the class detail view
-                showAlert('Student unenrolled successfully', 'success');
-                
-                // Refresh the enrolled students list
-                const response = await fetch(`/classes/api/${classId}/students`);
-                if (response.ok) {
-                    const students = await response.json();
-                    renderEnrolledStudents(students);
-                }
-            } else {
-                // Just show the error message without refreshing the view
-                showAlert(data.message || 'Failed to unenroll student', 'danger');
-            }
-            
-        } catch (error) {
-            console.error('Error unenrolling student:', error);
-            showAlert('An error occurred while unenrolling the student', 'danger');
-        }
-        
-        // Hide modal and reset state
-        hideModal(elements.confirmationModal);
-        state.studentToUnenroll = null;
-    }
-
-    // Enroll a student
-    async function enrollStudent(studentId) {
-        if (!state.currentClassId) return;
-        
-        try {
-            const response = await fetch(`/classes/api/${state.currentClassId}/enroll`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ studentId })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Update UI
-                renderAvailableStudents();
-                
-                showAlert('Student enrolled successfully', 'success');
-            } else {
-                showAlert(data.message || 'Failed to enroll student', 'danger');
-            }
-            
-        } catch (error) {
-            console.error('Error enrolling student:', error);
-            showAlert('An error occurred while enrolling the student', 'danger');
-        }
-    }
-
-    // Show modal
-    function showModal(modal) {
-        if (!modal) return;
-        
-        modal.style.display = 'flex';
-        // Force reflow
-        void modal.offsetWidth;
-        modal.classList.add('active');
-        document.body.classList.add('modal-open');
-    }
-
-    // Hide modal
-    function hideModal(modal) {
-        if (!modal) return;
-        
-        console.log('Hiding modal...');
-        modal.classList.remove('active');
-        document.body.classList.remove('modal-open');
-        
-        // Force an immediate hide if it gets stuck
-        setTimeout(() => {
-            if (modal.style.display !== 'none') {
-                console.log('Forcing modal hide after timeout');
-                modal.style.display = 'none';
-            }
-        }, 500); // Give a short time for transitions, then force hide
-        
-        // Wait for transition to finish
-        const handleTransitionEnd = () => {
-            console.log('Modal transition ended');
-            if (!modal.classList.contains('active')) {
-                modal.style.display = 'none';
-            }
-            modal.removeEventListener('transitionend', handleTransitionEnd);
-        };
-        
-        // Clean up any existing event listeners first
-        modal.removeEventListener('transitionend', handleTransitionEnd);
-        
-        // Add the new event listener
-        modal.addEventListener('transitionend', handleTransitionEnd);
-    }
-
-    // Show alert message
-    function showAlert(message, type = 'info') {
-        const alertContainer = document.getElementById('alertContainer');
-        if (!alertContainer) return;
-        
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show`;
-        alert.role = 'alert';
-        
-        alert.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        row.innerHTML = `
+            <td>${cls.classCode}</td>
+            <td>${cls.description}</td>
+            <td>${cls.roomNumber}</td>
+            <td>${cls.schedule}</td>
+            <td>${cls.enrolledCount}</td>
+            <td>${cls.instructorName}</td>
+            <td>
+                <button class="action-btn edit-class" title="Edit Class">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-class" title="Delete Class">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
         `;
         
-        alertContainer.appendChild(alert);
+        classesTableBody.appendChild(row);
         
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            alert.classList.remove('show');
-            setTimeout(() => {
-                alertContainer.removeChild(alert);
-            }, 150);
-        }, 5000);
+        // Add event listeners to the row for showing class detail
+        row.addEventListener('click', function(e) {
+            // Ignore clicks on action buttons
+            if (e.target.closest('.action-btn')) return;
+            
+            const classId = parseInt(this.dataset.classId);
+            showClassDetail(classId);
+        });
+        
+        // Add event listeners to buttons
+        const editButton = row.querySelector('.edit-class');
+        const deleteButton = row.querySelector('.delete-class');
+        
+        editButton.addEventListener('click', function() {
+            const classId = parseInt(row.dataset.classId);
+            editClass(classId);
+        });
+        
+        deleteButton.addEventListener('click', function() {
+            const classId = parseInt(row.dataset.classId);
+            deleteClass(classId);
+        });
+    });
+    
+    console.log('Classes table rendered with', classes.length, 'classes');
+}
+
+/**
+ * Fetch courses for the dropdown
+ */
+function populateCourseDropdown() {
+    const courseSelect = document.getElementById('course');
+    if (!courseSelect) return;
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    fetch(`/courses/api/list?_=${timestamp}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Courses data:', data);
+            courses = data;
+            
+            // Clear existing options except the first one
+            while (courseSelect.options.length > 1) {
+                courseSelect.remove(1);
+            }
+            
+            // Add course options
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.code;
+                option.textContent = `${course.code} - ${course.description}`;
+                courseSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching courses:', error);
+            
+            // Add a placeholder option
+            const option = document.createElement('option');
+            option.disabled = true;
+            option.textContent = 'Error loading courses';
+            courseSelect.appendChild(option);
+        });
+}
+
+/**
+ * Search classes based on a query string
+ * @param {string} query - The search query
+ */
+function searchClasses(query) {
+    const classesTableBody = document.getElementById('classes-table-body');
+    if (!classesTableBody) return;
+    
+    query = query.toLowerCase().trim();
+    
+    if (query === '') {
+        renderClassesTable();
+        return;
     }
-});
+    
+    const filteredClasses = classes.filter(cls => 
+        cls.classCode.toLowerCase().includes(query) ||
+        cls.description.toLowerCase().includes(query) ||
+        cls.roomNumber.toLowerCase().includes(query) ||
+        cls.schedule.toLowerCase().includes(query) ||
+        cls.instructorName.toLowerCase().includes(query)
+    );
+    
+    if (filteredClasses.length === 0) {
+        classesTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">No classes found matching "${query}"</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    classesTableBody.innerHTML = '';
+    
+    filteredClasses.forEach(cls => {
+        const row = document.createElement('tr');
+        row.className = 'clickable-row';
+        row.dataset.classId = cls.id;
+        
+        row.innerHTML = `
+            <td>${cls.classCode}</td>
+            <td>${cls.description}</td>
+            <td>${cls.roomNumber}</td>
+            <td>${cls.schedule}</td>
+            <td>${cls.enrolledCount}</td>
+            <td>${cls.instructorName}</td>
+            <td>
+                <button class="action-btn edit-class" title="Edit Class">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-class" title="Delete Class">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        classesTableBody.appendChild(row);
+        
+        // Add event listeners to the row for showing class detail
+        row.addEventListener('click', function(e) {
+            // Ignore clicks on action buttons
+            if (e.target.closest('.action-btn')) return;
+            
+            const classId = parseInt(this.dataset.classId);
+            showClassDetail(classId);
+        });
+        
+        // Add event listeners to buttons
+        const editButton = row.querySelector('.edit-class');
+        const deleteButton = row.querySelector('.delete-class');
+        
+        editButton.addEventListener('click', function() {
+            const classId = parseInt(row.dataset.classId);
+            editClass(classId);
+        });
+        
+        deleteButton.addEventListener('click', function() {
+            const classId = parseInt(row.dataset.classId);
+            deleteClass(classId);
+        });
+    });
+}
+
+/**
+ * Show the class detail view for a specific class
+ * @param {number} classId - The ID of the class to show
+ */
+function showClassDetail(classId) {
+    console.log('Showing detail for class ID:', classId);
+    selectedClassId = classId;
+    
+    // Find the class in our data
+    const selectedClass = classes.find(c => c.id === classId);
+    if (!selectedClass) {
+        console.error('Class not found:', classId);
+        return;
+    }
+    
+    // Set the title
+    const detailTitle = document.getElementById('class-detail-title');
+    if (detailTitle) {
+        detailTitle.textContent = `${selectedClass.classCode}: ${selectedClass.description}`;
+    }
+    
+    // Switch to the detail view
+    showView('class-detail');
+    
+    // Get enrolled students for this class
+    getClassStudents(classId);
+}
+
+/**
+ * Get students enrolled in a specific class
+ * @param {number} classId - The ID of the class
+ */
+function getClassStudents(classId) {
+    const enrolledStudentsList = document.getElementById('enrolled-students-list');
+    if (!enrolledStudentsList) return;
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    enrolledStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">Loading enrolled students...</td></tr>`;
+    
+    fetch(`/classes/api/${classId}/students?_=${timestamp}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(students => {
+            console.log('Enrolled students:', students);
+            
+            if (students.length === 0) {
+                enrolledStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">No students enrolled</td></tr>`;
+                return;
+            }
+            
+            enrolledStudentsList.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.firstName} ${student.lastName}</td>
+                    <td>${student.id}</td>
+                    <td>${student.yearLevel}</td>
+                    <td>${student.phone}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger btn-unenroll" data-student-id="${student.id}" data-enrollment-id="${student.enrollmentId}">
+                            <i class="fas fa-user-minus"></i> Unenroll
+                        </button>
+                    </td>
+                `;
+                
+                enrolledStudentsList.appendChild(row);
+                
+                // Add unenroll button handler
+                const unenrollBtn = row.querySelector('.btn-unenroll');
+                if (unenrollBtn) {
+                    unenrollBtn.addEventListener('click', function() {
+                        const studentId = this.dataset.studentId;
+                        const enrollmentId = parseInt(this.dataset.enrollmentId);
+                        unenrollStudent(studentId, enrollmentId);
+                    });
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching enrolled students:', error);
+            enrolledStudentsList.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        Error loading enrolled students. Please try again later.<br>
+                        <small>${error.message}</small>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+/**
+ * Get all students for the enrollment view
+ */
+function getAllStudents() {
+    const allStudentsList = document.getElementById('all-students-list');
+    if (!allStudentsList) return;
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    allStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">Loading students...</td></tr>`;
+    
+    fetch(`/students/api/list?_=${timestamp}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(students => {
+            console.log('All students:', students);
+            
+            if (students.length === 0) {
+                allStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">No students found</td></tr>`;
+                return;
+            }
+            
+            // Get currently enrolled students
+            const classId = selectedClassId;
+            
+            fetch(`/classes/api/${classId}/students?_=${timestamp}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(enrolledStudents => {
+                    console.log('Enrolled students for comparison:', enrolledStudents);
+                    
+                    // Get IDs of enrolled students
+                    const enrolledStudentIds = enrolledStudents.map(student => student.id);
+                    
+                    allStudentsList.innerHTML = '';
+                    
+                    // Show only students who are not already enrolled
+                    students.filter(student => !enrolledStudentIds.includes(student.id))
+                            .forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student.firstName} ${student.lastName}</td>
+                            <td>${student.id}</td>
+                            <td>${student.yearLevel}</td>
+                            <td>${student.phone}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary btn-enroll" data-student-id="${student.id}">
+                                    <i class="fas fa-user-plus"></i> Enroll
+                                </button>
+                            </td>
+                        `;
+                        
+                        allStudentsList.appendChild(row);
+                        
+                        // Add enroll button handler
+                        const enrollBtn = row.querySelector('.btn-enroll');
+                        if (enrollBtn) {
+                            enrollBtn.addEventListener('click', function() {
+                                const studentId = this.dataset.studentId;
+                                enrollStudent(studentId);
+                            });
+                        }
+                    });
+                    
+                    if (allStudentsList.children.length === 0) {
+                        allStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">All students are already enrolled in this class</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching enrolled students for comparison:', error);
+                    // Continue showing all students if we can't get enrollment data
+                    showAllStudents(students);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching all students:', error);
+            allStudentsList.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        Error loading students. Please try again later.<br>
+                        <small>${error.message}</small>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+/**
+ * Search students in the all students list
+ * @param {string} query - The search query
+ */
+function searchStudents(query) {
+    const allStudentsList = document.getElementById('all-students-list');
+    if (!allStudentsList) return;
+    
+    query = query.toLowerCase().trim();
+    
+    if (query === '') {
+        getAllStudents();
+        return;
+    }
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    allStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">Searching students...</td></tr>`;
+    
+    fetch(`/students/api/search?query=${encodeURIComponent(query)}&_=${timestamp}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(students => {
+            console.log('Search results:', students);
+            
+            if (students.length === 0) {
+                allStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">No students found matching "${query}"</td></tr>`;
+                return;
+            }
+            
+            // Get currently enrolled students
+            const classId = selectedClassId;
+            
+            fetch(`/classes/api/${classId}/students?_=${timestamp}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(enrolledStudents => {
+                    console.log('Enrolled students for comparison:', enrolledStudents);
+                    
+                    // Get IDs of enrolled students
+                    const enrolledStudentIds = enrolledStudents.map(student => student.id);
+                    
+                    allStudentsList.innerHTML = '';
+                    
+                    // Show only students who are not already enrolled
+                    students.filter(student => !enrolledStudentIds.includes(student.id))
+                            .forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student.firstName} ${student.lastName}</td>
+                            <td>${student.id}</td>
+                            <td>${student.yearLevel}</td>
+                            <td>${student.phone}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary btn-enroll" data-student-id="${student.id}">
+                                    <i class="fas fa-user-plus"></i> Enroll
+                                </button>
+                            </td>
+                        `;
+                        
+                        allStudentsList.appendChild(row);
+                        
+                        // Add enroll button handler
+                        const enrollBtn = row.querySelector('.btn-enroll');
+                        if (enrollBtn) {
+                            enrollBtn.addEventListener('click', function() {
+                                const studentId = this.dataset.studentId;
+                                enrollStudent(studentId);
+                            });
+                        }
+                    });
+                    
+                    if (allStudentsList.children.length === 0) {
+                        allStudentsList.innerHTML = `<tr><td colspan="5" class="text-center">No matching students available for enrollment</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching enrolled students for comparison:', error);
+                    // Continue showing all students if we can't get enrollment data
+                    showAllStudents(students);
+                });
+        })
+        .catch(error => {
+            console.error('Error searching students:', error);
+            allStudentsList.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        Error searching students. Please try again later.<br>
+                        <small>${error.message}</small>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+/**
+ * Show all students without filtering based on enrollment
+ * @param {Array} students - The students to display
+ */
+function showAllStudents(students) {
+    const allStudentsList = document.getElementById('all-students-list');
+    if (!allStudentsList) return;
+    
+    allStudentsList.innerHTML = '';
+    
+    students.forEach(student => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${student.firstName} ${student.lastName}</td>
+            <td>${student.id}</td>
+            <td>${student.yearLevel}</td>
+            <td>${student.phone}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary btn-enroll" data-student-id="${student.id}">
+                    <i class="fas fa-user-plus"></i> Enroll
+                </button>
+            </td>
+        `;
+        
+        allStudentsList.appendChild(row);
+        
+        // Add enroll button handler
+        const enrollBtn = row.querySelector('.btn-enroll');
+        if (enrollBtn) {
+            enrollBtn.addEventListener('click', function() {
+                const studentId = this.dataset.studentId;
+                enrollStudent(studentId);
+            });
+        }
+    });
+}
+
+/**
+ * Enroll a student in the selected class
+ * @param {string} studentId - The ID of the student to enroll
+ */
+function enrollStudent(studentId) {
+    if (!selectedClassId) {
+        console.error('No class selected for enrollment');
+        return;
+    }
+    
+    console.log(`Enrolling student ${studentId} in class ${selectedClassId}`);
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    fetch(`/classes/api/${selectedClassId}/enroll`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            studentId: studentId
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || `HTTP error! Status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Enrollment successful:', data);
+        
+        // Show a success message
+        alert('Student enrolled successfully!');
+        
+        // Refresh the class detail view
+        showClassDetail(selectedClassId);
+    })
+    .catch(error => {
+        console.error('Error enrolling student:', error);
+        alert(`Error enrolling student: ${error.message}`);
+    });
+}
+
+/**
+ * Unenroll a student from the selected class
+ * @param {string} studentId - The ID of the student to unenroll
+ * @param {number} enrollmentId - The ID of the enrollment record
+ */
+function unenrollStudent(studentId, enrollmentId) {
+    if (!selectedClassId) {
+        console.error('No class selected for unenrollment');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to unenroll this student from the class?`)) {
+        return;
+    }
+    
+    console.log(`Unenrolling student ${studentId} from class ${selectedClassId}`);
+    
+    fetch(`/classes/api/${selectedClassId}/unenroll/${enrollmentId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || `HTTP error! Status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Unenrollment successful:', data);
+        
+        // Show a success message
+        alert('Student unenrolled successfully!');
+        
+        // Refresh the class detail view
+        showClassDetail(selectedClassId);
+    })
+    .catch(error => {
+        console.error('Error unenrolling student:', error);
+        alert(`Error unenrolling student: ${error.message}`);
+    });
+}
+
+/**
+ * Show the add class modal
+ */
+function showAddClassModal() {
+    console.log('Showing add class modal');
+    
+    // Reset the form
+    const classForm = document.getElementById('class-form');
+    const classIdInput = document.getElementById('classId');
+    const classCodeInput = document.getElementById('classCode');
+    const courseSelect = document.getElementById('course');
+    const descriptionInput = document.getElementById('description');
+    const roomNumberInput = document.getElementById('roomNumber');
+    const scheduleInput = document.getElementById('schedule');
+    const modalTitle = document.getElementById('class-modal-title');
+    
+    if (classForm && classIdInput && classCodeInput && courseSelect && 
+        descriptionInput && roomNumberInput && scheduleInput && modalTitle) {
+        classForm.reset();
+        classIdInput.value = '';
+        classCodeInput.value = '';
+        descriptionInput.value = '';
+        
+        modalTitle.textContent = 'Add New Class';
+        selectedClassId = null;
+        
+        // Reset schedule builder
+        if (typeof setupScheduleBuilder === 'function') {
+            setupScheduleBuilder();
+        }
+    }
+    
+    // Show the modal
+    const classModal = document.getElementById('class-modal');
+    if (classModal) {
+        classModal.classList.add('show');
+        
+        // Set initial focus
+        if (courseSelect) {
+            setTimeout(() => courseSelect.focus(), 100);
+        }
+    }
+}
+
+/**
+ * Edit an existing class
+ * @param {number} classId - The ID of the class to edit
+ */
+function editClass(classId) {
+    console.log('Editing class ID:', classId);
+    
+    const classToEdit = classes.find(c => c.id === classId);
+    if (!classToEdit) {
+        console.error('Class not found:', classId);
+        return;
+    }
+    
+    // Set up the form with existing values
+    const classForm = document.getElementById('class-form');
+    const classIdInput = document.getElementById('classId');
+    const classCodeInput = document.getElementById('classCode');
+    const courseSelect = document.getElementById('course');
+    const descriptionInput = document.getElementById('description');
+    const roomNumberInput = document.getElementById('roomNumber');
+    const scheduleInput = document.getElementById('schedule');
+    const instructorIdSelect = document.getElementById('instructorId');
+    const modalTitle = document.getElementById('class-modal-title');
+    
+    if (classForm && classIdInput && classCodeInput && courseSelect && 
+        descriptionInput && roomNumberInput && scheduleInput && 
+        instructorIdSelect && modalTitle) {
+        
+        // Extract course code from class code (before the dash)
+        const courseCode = classToEdit.classCode.split('-')[0];
+        
+        classIdInput.value = classToEdit.id;
+        classCodeInput.value = classToEdit.classCode;
+        
+        // Set the course dropdown
+        for (let i = 0; i < courseSelect.options.length; i++) {
+            if (courseSelect.options[i].value === courseCode) {
+                courseSelect.selectedIndex = i;
+                break;
+            }
+        }
+        
+        descriptionInput.value = classToEdit.description;
+        roomNumberInput.value = classToEdit.roomNumber;
+        
+        // Set up the schedule builder with existing schedule
+        if (typeof setupScheduleBuilder === 'function') {
+            setupScheduleBuilder(classToEdit.schedule);
+        } else {
+            scheduleInput.value = classToEdit.schedule;
+        }
+        
+        // Set the instructor dropdown
+        for (let i = 0; i < instructorIdSelect.options.length; i++) {
+            if (parseInt(instructorIdSelect.options[i].value) === classToEdit.instructorId) {
+                instructorIdSelect.selectedIndex = i;
+                break;
+            }
+        }
+        
+        modalTitle.textContent = 'Edit Class';
+        selectedClassId = classId;
+    }
+    
+    // Show the modal
+    const classModal = document.getElementById('class-modal');
+    if (classModal) {
+        classModal.classList.add('show');
+        
+        // Set initial focus
+        if (roomNumberInput) {
+            setTimeout(() => roomNumberInput.focus(), 100);
+        }
+    }
+}
+
+/**
+ * Save a class (create or update)
+ */
+function saveClass() {
+    console.log('Saving class');
+    
+    const classIdInput = document.getElementById('classId');
+    const classCodeInput = document.getElementById('classCode');
+    const descriptionInput = document.getElementById('description');
+    const roomNumberInput = document.getElementById('roomNumber');
+    const scheduleInput = document.getElementById('schedule');
+    const instructorIdSelect = document.getElementById('instructorId');
+    
+    if (!classCodeInput || !descriptionInput || !roomNumberInput || !scheduleInput || !instructorIdSelect) {
+        console.error('Missing form elements');
+        return;
+    }
+    
+    const classId = classIdInput.value ? parseInt(classIdInput.value) : null;
+    const classCode = classCodeInput.value.trim();
+    const description = descriptionInput.value.trim();
+    const roomNumber = roomNumberInput.value.trim();
+    const schedule = scheduleInput.value.trim();
+    const instructorId = parseInt(instructorIdSelect.value);
+    
+    // Validate form
+    if (!classCode) {
+        alert('Please enter a class code');
+        classCodeInput.focus();
+        return;
+    }
+    
+    if (!description) {
+        alert('Please enter a description');
+        descriptionInput.focus();
+        return;
+    }
+    
+    if (!roomNumber) {
+        alert('Please enter a room number');
+        roomNumberInput.focus();
+        return;
+    }
+    
+    if (!schedule) {
+        alert('Please set a schedule');
+        return;
+    }
+    
+    if (!instructorId) {
+        alert('Please select an instructor');
+        instructorIdSelect.focus();
+        return;
+    }
+    
+    const classData = {
+        classCode,
+        description,
+        roomNumber,
+        schedule,
+        instructorId
+    };
+    
+    console.log('Class data to save:', classData);
+    
+    // Determine if this is a create or update operation
+    const isUpdate = !!classId;
+    
+    const url = isUpdate 
+        ? `/classes/api/update/${classId}`
+        : '/classes/api/create';
+    
+    const method = isUpdate ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(classData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || `HTTP error! Status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Class saved successfully:', data);
+        
+        // Close the modal
+        closeClassModal();
+        
+        // Show a success message
+        alert(isUpdate ? 'Class updated successfully!' : 'Class created successfully!');
+        
+        // Refresh the classes list
+        fetchClasses();
+    })
+    .catch(error => {
+        console.error('Error saving class:', error);
+        alert(`Error saving class: ${error.message}`);
+    });
+}
+
+/**
+ * Delete a class
+ * @param {number} classId - The ID of the class to delete
+ */
+function deleteClass(classId) {
+    console.log('Deleting class ID:', classId);
+    
+    const classToDelete = classes.find(c => c.id === classId);
+    if (!classToDelete) {
+        console.error('Class not found:', classId);
+        return;
+    }
+    
+    // Set up the confirmation modal
+    const confirmationText = document.getElementById('confirmation-text');
+    
+    if (confirmationText) {
+        confirmationText.innerHTML = `
+            Are you sure you want to delete class <strong>${classToDelete.classCode}</strong>?<br>
+            This will remove all enrollments and attendance records for this class.
+        `;
+    }
+    
+    // Store the class ID for the confirmation handler
+    selectedClassId = classId;
+    
+    // Show the confirmation modal
+    const confirmationModal = document.getElementById('confirmation-modal');
+    if (confirmationModal) {
+        confirmationModal.classList.add('show');
+    }
+}
+
+/**
+ * Confirm and execute class deletion
+ */
+function confirmDeleteClass() {
+    if (!selectedClassId) {
+        console.error('No class selected for deletion');
+        return;
+    }
+    
+    console.log('Confirming deletion of class ID:', selectedClassId);
+    
+    fetch(`/classes/api/delete/${selectedClassId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || `HTTP error! Status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Class deleted successfully:', data);
+        
+        // Close the confirmation modal
+        closeConfirmationModal();
+        
+        // Show a success message
+        alert('Class deleted successfully!');
+        
+        // Refresh the classes list
+        fetchClasses();
+    })
+    .catch(error => {
+        console.error('Error deleting class:', error);
+        alert(`Error deleting class: ${error.message}`);
+        
+        // Close the confirmation modal
+        closeConfirmationModal();
+    });
+}
+
+/**
+ * Close the class modal
+ */
+function closeClassModal() {
+    const classModal = document.getElementById('class-modal');
+    if (classModal) {
+        classModal.classList.remove('show');
+    }
+}
+
+/**
+ * Close the confirmation modal
+ */
+function closeConfirmationModal() {
+    const confirmationModal = document.getElementById('confirmation-modal');
+    if (confirmationModal) {
+        confirmationModal.classList.remove('show');
+    }
+}
+
+/**
+ * Show the specified view and hide others
+ * @param {string} viewName - The name of the view to show
+ */
+function showView(viewName) {
+    currentView = viewName;
+    
+    const classesView = document.getElementById('classes-view');
+    const classDetailView = document.getElementById('class-detail-view');
+    const studentSelectionView = document.getElementById('student-selection-view');
+    
+    if (classesView && classDetailView && studentSelectionView) {
+        classesView.classList.add('d-none');
+        classDetailView.classList.add('d-none');
+        studentSelectionView.classList.add('d-none');
+        
+        switch (viewName) {
+            case 'classes':
+                classesView.classList.remove('d-none');
+                break;
+            case 'class-detail':
+                classDetailView.classList.remove('d-none');
+                break;
+            case 'student-selection':
+                studentSelectionView.classList.remove('d-none');
+                break;
+        }
+    }
+}
