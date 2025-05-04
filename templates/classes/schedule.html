@@ -160,7 +160,7 @@
                 <button type="button" class="close-btn" id="close-class-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="class-form">
+                <form id="class-form" action="/classes/api/create" method="post" onsubmit="return validateAndPrepareForm(this)">
                     <input type="hidden" id="classId" name="classId">
                     <div class="form-group">
                         <label for="course">Course</label>
@@ -223,7 +223,7 @@
                                     </div>
                                     <div class="col-md-2">
                                         <label>&nbsp;</label>
-                                        <button type="button" class="btn btn-primary btn-sm form-control" id="addTimeBtn" onclick="document.dispatchEvent(new CustomEvent('addTimeSlot'))">Add</button>
+                                        <button type="button" class="btn btn-primary btn-sm form-control" id="addTimeBtn" onclick="addScheduleSlot()">Add</button>
                                     </div>
                                 </div>
                             </div>
@@ -277,4 +277,221 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
 <script src="{{ url_for('static', filename='js/schedule-builder.js') }}"></script>
+
+<script>
+// Direct schedule handling
+function addScheduleSlot() {
+    console.log('Direct addScheduleSlot function called');
+    
+    // Get selected days
+    const selectedDayButtons = document.querySelectorAll('.day-btn.active');
+    const selectedDays = Array.from(selectedDayButtons).map(btn => btn.dataset.day);
+    
+    if (selectedDays.length === 0) {
+        alert('Please select at least one day');
+        return;
+    }
+    
+    // Get times
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    
+    if (!startTime || !endTime) {
+        alert('Please select start and end times');
+        return;
+    }
+    
+    if (startTime >= endTime) {
+        alert('End time must be after start time');
+        return;
+    }
+    
+    // Format time for display (12-hour format)
+    function formatTime(timeStr) {
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+    }
+    
+    // Create display text
+    const displayText = selectedDays.join('') + ' ' + 
+                      formatTime(startTime) + '-' + 
+                      formatTime(endTime);
+    
+    // Update display
+    const scheduleDisplay = document.getElementById('scheduleDisplay');
+    if (scheduleDisplay) {
+        // Remove "No schedule set" message if present
+        if (scheduleDisplay.querySelector('.text-muted')) {
+            scheduleDisplay.innerHTML = '';
+        }
+        
+        // Add the schedule tag
+        const tag = document.createElement('div');
+        tag.className = 'schedule-tag';
+        tag.innerHTML = displayText + 
+                      '<span class="remove-schedule" data-index="' + Date.now() + '">&times;</span>';
+        scheduleDisplay.appendChild(tag);
+        
+        // Set up remove handler for the new tag
+        const removeBtn = tag.querySelector('.remove-schedule');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                tag.remove();
+                updateScheduleInput();
+                
+                // If no tags left, show "No schedule set"
+                if (scheduleDisplay.children.length === 0) {
+                    scheduleDisplay.innerHTML = '<span class="text-muted">No schedule set</span>';
+                }
+            });
+        }
+    }
+    
+    // Update hidden input field
+    updateScheduleInput();
+    
+    // Reset time inputs for next entry
+    document.getElementById('startTime').value = '';
+    document.getElementById('endTime').value = '';
+    
+    // Helper function to update the hidden input with current schedule
+    function updateScheduleInput() {
+        const scheduleInput = document.getElementById('schedule');
+        if (scheduleInput) {
+            const tags = scheduleDisplay.querySelectorAll('.schedule-tag');
+            if (tags.length > 0) {
+                const scheduleTexts = Array.from(tags).map(tag => {
+                    // Clone to safely manipulate
+                    const clone = tag.cloneNode(true);
+                    const removeBtn = clone.querySelector('.remove-schedule');
+                    if (removeBtn) removeBtn.remove();
+                    return clone.textContent.trim();
+                });
+                
+                scheduleInput.value = scheduleTexts.join(', ');
+                console.log('Updated schedule input value:', scheduleInput.value);
+            } else {
+                scheduleInput.value = '';
+            }
+        }
+    }
+}
+
+// Ensure form submission checks for schedule and processes the data properly
+document.addEventListener('DOMContentLoaded', function() {
+    const classForm = document.getElementById('class-form');
+    if (classForm) {
+        // Add direct submit handler
+        classForm.addEventListener('submit', function(e) {
+            // Always prevent default submit since we'll handle it manually
+            e.preventDefault();
+            
+            // Validate the form
+            if (validateAndPrepareForm(this)) {
+                // Submit the form data via AJAX
+                submitClassForm();
+            }
+            
+            return false;
+        });
+    }
+});
+
+// Function for validating form and preparing data
+function validateAndPrepareForm(form) {
+    // Check required fields
+    const classCode = document.getElementById('classCode').value;
+    const roomNumber = document.getElementById('roomNumber').value;
+    const scheduleInput = document.getElementById('schedule');
+    const scheduleValue = scheduleInput ? scheduleInput.value : '';
+    const instructorId = document.getElementById('instructorId').value;
+    
+    // Validate each field
+    if (!classCode) {
+        alert('Please enter a class code.');
+        return false;
+    }
+    
+    if (!roomNumber) {
+        alert('Please enter a room number.');
+        return false;
+    }
+    
+    if (!scheduleValue) {
+        alert('Please add at least one schedule time slot before saving.');
+        return false;
+    }
+    
+    if (!instructorId) {
+        alert('Please select an instructor.');
+        return false;
+    }
+    
+    console.log('Form validated successfully with schedule:', scheduleValue);
+    return true;
+}
+
+// Function to submit form data via AJAX
+function submitClassForm() {
+    // Get form data
+    const classCode = document.getElementById('classCode').value;
+    const description = document.getElementById('description').value;
+    const roomNumber = document.getElementById('roomNumber').value;
+    const schedule = document.getElementById('schedule').value;
+    const instructorId = parseInt(document.getElementById('instructorId').value);
+    const classId = document.getElementById('classId').value;
+    
+    // Create data object
+    const classData = {
+        classCode: classCode,
+        description: description,
+        roomNumber: roomNumber,
+        schedule: schedule,
+        instructorId: instructorId
+    };
+    
+    console.log('Submitting class data:', classData);
+    
+    // Determine if creating new or updating existing
+    const isEditing = classId && classId.trim() !== '';
+    let url = isEditing ? `/classes/api/update/${classId}` : '/classes/api/create';
+    let method = isEditing ? 'PUT' : 'POST';
+    
+    // Submit AJAX request
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(classData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Class saved successfully!');
+            
+            // Close the modal
+            const modal = document.getElementById('class-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+            
+            // Refresh the page to show the updated classes
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        } else {
+            alert('Error: ' + (data.message || 'Failed to save class'));
+        }
+    })
+    .catch(error => {
+        console.error('Error saving class:', error);
+        alert('An error occurred while saving the class. Please try again.');
+    });
+}
+</script>
 {% endblock %}
