@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             // Send to logout route
-            window.location.href = '/logout';
+            window.location.href = '/auth/logout';
         });
     }
     
