@@ -19,7 +19,7 @@
             <i class="fas fa-search"></i>
         </button>
     </div>
-    <button class="btn-add-student" id="btnEnrollStudent">
+    <button class="btn-add-student" id="btnEnrollStudent" onclick="document.getElementById('enrollModal').style.display = 'flex';">
         <i class="fas fa-plus"></i> Enroll Student
     </button>
 </div>
@@ -319,50 +319,74 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${student.yearLevel}</td>
                 <td>${student.phone}</td>
                 <td>
-                    <button class="action-btn btn-edit" data-student-id="${student.id}">
+                    <button class="action-btn btn-edit" onclick="
+                        state.currentStudentId = '${student.id}';
+                        document.getElementById('editStudentId').value = '${student.id}';
+                        document.getElementById('editFirstName').value = '${student.firstName}';
+                        document.getElementById('editLastName').value = '${student.lastName}';
+                        document.getElementById('editPhoneNumber').value = '${student.phone}';
+                        document.getElementById('editYearLevel').value = '${student.yearLevel}';
+                        document.getElementById('editIdNumber').value = '${student.id}';
+                        document.getElementById('editEmail').value = '${student.email || ''}';
+                        document.getElementById('editModal').style.display = 'flex';
+                    ">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn btn-pictures" data-student-id="${student.id}" 
-                        data-student-name="${student.firstName} ${student.lastName}">
+                    <button class="action-btn btn-pictures" onclick="
+                        state.currentStudentId = '${student.id}';
+                        document.getElementById('student-id-for-image').value = '${student.id}';
+                        document.getElementById('student-name-display').textContent = '${student.firstName} ${student.lastName}';
+                        document.getElementById('picturesModal').style.display = 'flex';
+                    ">
                         <i class="fas fa-camera"></i>
                     </button>
-                    <button class="action-btn btn-delete" data-student-id="${student.id}">
+                    <button class="action-btn btn-delete" onclick="
+                        state.currentStudentId = '${student.id}';
+                        document.getElementById('confirmationModal').style.display = 'flex';
+                    ">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
             `;
             
-            // Add event listeners to the buttons
-            const editBtn = row.querySelector('.btn-edit');
-            const picturesBtn = row.querySelector('.btn-pictures');
-            const deleteBtn = row.querySelector('.btn-delete');
-            
-            editBtn.addEventListener('click', () => showEditModal(student));
-            picturesBtn.addEventListener('click', () => showPicturesModal(student.id, `${student.firstName} ${student.lastName}`));
-            deleteBtn.addEventListener('click', () => showDeleteConfirmation(student.id));
+            // Event listeners are now handled directly by inline onclick attributes
             
             elements.studentsTableBody.appendChild(row);
         });
     }
     
-    // Show a modal
+    // Direct modal functions without relying on classes
     function showModal(modal) {
-        console.log('Showing modal:', modal);
+        console.log('Showing modal:', modal, modal ? modal.id : 'undefined');
         if (!modal) {
             console.error('Modal element is null or undefined');
             return;
         }
+        
+        // Set the modal to be visible
         modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        modal.style.visibility = 'visible';
+        
+        // Add body class to prevent scrolling
+        document.body.classList.add('modal-open');
     }
     
     // Hide a modal
     function hideModal(modal) {
-        console.log('Hiding modal:', modal);
+        console.log('Hiding modal:', modal, modal ? modal.id : 'undefined');
         if (!modal) {
             console.error('Modal element is null or undefined');
             return;
         }
+        
+        // Hide the modal
         modal.style.display = 'none';
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        
+        // Remove body class
+        document.body.classList.remove('modal-open');
     }
     
     // Show the edit student modal
