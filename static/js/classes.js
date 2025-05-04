@@ -30,10 +30,25 @@ let courses = [];
  * Set up all event listeners for interactive elements
  */
 function setupEventListeners() {
-    // Add class button
+    // Add class button (admin only)
     const addClassBtn = document.getElementById('add-class-btn');
     if (addClassBtn) {
-        addClassBtn.addEventListener('click', showAddClassModal);
+        // Check if user is admin before showing the button
+        fetch('/auth/check-auth')
+            .then(response => response.json())
+            .then(data => {
+                if (data.user && data.user.role === 'admin') {
+                    addClassBtn.addEventListener('click', showAddClassModal);
+                } else {
+                    // Hide button for non-admin users
+                    addClassBtn.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error checking user role:', error);
+                // Hide button on error
+                addClassBtn.style.display = 'none';
+            });
     }
     
     // Search class input
@@ -227,26 +242,40 @@ function renderClassesTable() {
     
     classesTableBody.innerHTML = '';
     
-    classes.forEach(cls => {
-        const row = document.createElement('tr');
-        row.className = 'clickable-row';
-        row.dataset.classId = cls.id;
-        
-        row.innerHTML = `
-            <td>${cls.classCode}</td>
-            <td>${cls.description}</td>
-            <td>${cls.roomNumber}</td>
-            <td>${cls.schedule}</td>
-            <td>${cls.instructorName}</td>
-            <td>
-                <button class="action-btn edit-class" title="Edit Class">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete-class" title="Delete Class">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
+    // Check user role
+    fetch('/auth/check-auth')
+        .then(response => response.json())
+        .then(data => {
+            const isAdmin = data.user && data.user.role === 'admin';
+            
+            classes.forEach(cls => {
+                const row = document.createElement('tr');
+                row.className = 'clickable-row';
+                row.dataset.classId = cls.id;
+                
+                // For admin users, show edit and delete buttons
+                // For instructors, only show view button
+                row.innerHTML = `
+                    <td>${cls.classCode}</td>
+                    <td>${cls.description}</td>
+                    <td>${cls.roomNumber}</td>
+                    <td>${cls.schedule}</td>
+                    <td>${cls.instructorName}</td>
+                    <td>
+                        ${isAdmin ? `
+                            <button class="action-btn edit-class" title="Edit Class">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-class" title="Delete Class">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : `
+                            <button class="action-btn view-class" title="View Class">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        `}
+                    </td>
+                `;
         
         classesTableBody.appendChild(row);
         
@@ -356,26 +385,40 @@ function searchClasses(query) {
     
     classesTableBody.innerHTML = '';
     
-    filteredClasses.forEach(cls => {
-        const row = document.createElement('tr');
-        row.className = 'clickable-row';
-        row.dataset.classId = cls.id;
-        
-        row.innerHTML = `
-            <td>${cls.classCode}</td>
-            <td>${cls.description}</td>
-            <td>${cls.roomNumber}</td>
-            <td>${cls.schedule}</td>
-            <td>${cls.instructorName}</td>
-            <td>
-                <button class="action-btn edit-class" title="Edit Class">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete-class" title="Delete Class">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
+    // Check user role
+    fetch('/auth/check-auth')
+        .then(response => response.json())
+        .then(data => {
+            const isAdmin = data.user && data.user.role === 'admin';
+            
+            filteredClasses.forEach(cls => {
+                const row = document.createElement('tr');
+                row.className = 'clickable-row';
+                row.dataset.classId = cls.id;
+                
+                // For admin users, show edit and delete buttons
+                // For instructors, only show view button
+                row.innerHTML = `
+                    <td>${cls.classCode}</td>
+                    <td>${cls.description}</td>
+                    <td>${cls.roomNumber}</td>
+                    <td>${cls.schedule}</td>
+                    <td>${cls.instructorName}</td>
+                    <td>
+                        ${isAdmin ? `
+                            <button class="action-btn edit-class" title="Edit Class">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-class" title="Delete Class">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : `
+                            <button class="action-btn view-class" title="View Class">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        `}
+                    </td>
+                `;
         
         classesTableBody.appendChild(row);
         
