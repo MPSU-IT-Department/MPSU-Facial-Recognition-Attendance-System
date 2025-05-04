@@ -1,0 +1,56 @@
+/* Schedule Builder Styles */
+.schedule-builder {
+    margin-bottom: 20px;
+}
+
+.day-selection .btn-group-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.day-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.day-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+#scheduleDisplay {
+    min-height: 40px;
+}
+
+.schedule-tag {
+    display: inline-block;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin: 2px;
+    font-size: 0.9rem;
+}
+
+.schedule-tag .remove-schedule {
+    margin-left: 5px;
+    color: #dc3545;
+    cursor: pointer;
+}
+
+.time-selection .row {
+    align-items: flex-end;
+}
+
+/* Clickable row styling */
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}

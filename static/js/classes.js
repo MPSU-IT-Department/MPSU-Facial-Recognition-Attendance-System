@@ -96,13 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Table click delegation
         document.addEventListener('click', function(e) {
-            // View class button
-            const viewClass = e.target.closest('.view-class');
-            if (viewClass) {
-                const classId = parseInt(viewClass.dataset.classId);
-                showClassDetailView(classId);
-            }
-            
             // Edit class button
             const editClass = e.target.closest('.edit-class');
             if (editClass) {
@@ -448,6 +441,10 @@ document.addEventListener('DOMContentLoaded', () => {
         state.classes.forEach(classData => {
             const row = document.createElement('tr');
             
+            // Make the row clickable to show class details
+            row.classList.add('clickable-row');
+            row.dataset.classId = classData.id;
+            
             row.innerHTML = `
                 <td>${classData.description}</td>
                 <td>${classData.roomNumber}</td>
@@ -455,9 +452,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${classData.enrolledCount}</td>
                 <td>${classData.instructorName}</td>
                 <td>
-                    <button class="action-btn view-class" data-class-id="${classData.id}" title="View Class">
-                        <i class="fas fa-eye"></i>
-                    </button>
                     <button class="action-btn edit-class" data-class-id="${classData.id}" title="Edit Class">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -468,6 +462,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             elements.classesTableBody.appendChild(row);
+            
+            // Add click event to the row
+            row.addEventListener('click', function(e) {
+                // If the click was on an action button, don't navigate to details
+                if (e.target.closest('.action-btn')) return;
+                
+                showClassDetailView(parseInt(this.dataset.classId));
+            });
         });
     }
 

@@ -171,8 +171,61 @@
                         <input type="text" class="form-control" id="roomNumber" name="roomNumber" required>
                     </div>
                     <div class="form-group">
-                        <label for="schedule">Schedule</label>
-                        <input type="text" class="form-control" id="schedule" name="schedule" placeholder="e.g., MWF 9:00-10:30 AM" required>
+                        <label>Schedule</label>
+                        <div class="schedule-builder">
+                            <!-- Day Selection -->
+                            <div class="day-selection mb-3">
+                                <label class="mb-2">Select Days:</label>
+                                <div class="btn-group-toggle" data-toggle="buttons">
+                                    <label class="btn btn-outline-secondary day-btn" data-day="M">
+                                        <input type="checkbox" autocomplete="off"> Mon
+                                    </label>
+                                    <label class="btn btn-outline-secondary day-btn" data-day="T">
+                                        <input type="checkbox" autocomplete="off"> Tue
+                                    </label>
+                                    <label class="btn btn-outline-secondary day-btn" data-day="W">
+                                        <input type="checkbox" autocomplete="off"> Wed
+                                    </label>
+                                    <label class="btn btn-outline-secondary day-btn" data-day="Th">
+                                        <input type="checkbox" autocomplete="off"> Thu
+                                    </label>
+                                    <label class="btn btn-outline-secondary day-btn" data-day="F">
+                                        <input type="checkbox" autocomplete="off"> Fri
+                                    </label>
+                                    <label class="btn btn-outline-secondary day-btn" data-day="S">
+                                        <input type="checkbox" autocomplete="off"> Sat
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Time Selection -->
+                            <div class="time-selection mb-3">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label for="startTime">Start Time:</label>
+                                        <input type="time" class="form-control" id="startTime">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="endTime">End Time:</label>
+                                        <input type="time" class="form-control" id="endTime">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>&nbsp;</label>
+                                        <button type="button" class="btn btn-primary btn-sm form-control" id="addTimeBtn">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Schedule Display and Final Value -->
+                            <div class="schedule-display mb-3">
+                                <label>Current Schedule:</label>
+                                <div id="scheduleDisplay" class="border rounded p-2 bg-light">
+                                    <span class="text-muted">No schedule set</span>
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" id="schedule" name="schedule" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="instructorId">Instructor</label>
