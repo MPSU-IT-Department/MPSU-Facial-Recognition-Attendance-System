@@ -1,0 +1,76 @@
+Certainly! Here's a **compiled and organized version** of the **three enhanced prompts** you asked for, ready for developer implementation or documentation:
+
+---
+
+## 🔧 COMPILED FEATURE & BUG REPORT — SYSTEM ENHANCEMENTS
+
+---
+
+### 1️⃣ **Admin-Side Completion & Instructor Interface Setup**
+
+#### ✅ **A. Complete Admin-Side Functionality**
+
+* Ensure all admin buttons, forms, and components are functional.
+* Implement all planned features (e.g., course/class creation, instructor assignment, schedule management).
+* Remove or complete any placeholder elements.
+* Match final output to the original system scope.
+
+#### 👨‍🏫 **B. Build Instructor Interface**
+
+* Instructor accounts should be created from entries in **Manage Instructor**.
+* The instructor dashboard should include:
+
+  * Viewing assigned classes
+  * Enrolling/managing students in their classes
+  * Viewing class schedules and codes
+  * Marking or viewing attendance (if applicable)
+
+#### 🔗 **C. Instructor-Enrolled Students Sync with Admin Database**
+
+* Instructors can enroll students via their interface.
+* Enrolled students should:
+
+  * Be added to the instructor's class list
+  * Also appear in the admin's **Manage Student** database automatically
+* Prevent duplicate entries by checking existing student IDs.
+
+---
+
+### 2️⃣ **Image Upload Feature (For Future Facial Recognition Integration)**
+
+#### 🖼️ **A. Upload Capability for Admin**
+
+* Admin can upload or update:
+
+  * **Student profile images** in **Manage Student**
+  * **Instructor profile images** in **Manage Instructor**
+
+#### 👨‍🏫 **B. Upload Capability for Instructors**
+
+* Instructors can upload/update images for **their own students** only.
+* Admin can override or edit any instructor-added image.
+
+#### 📁 **C. Image Handling Requirements**
+
+* Valid formats: JPG, PNG
+* Size/quality validation
+* Secure file storage and linkage to user ID
+* Images should be ready for integration with facial recognition modules
+
+---
+
+### 3️⃣ **Bug Fixes: Class Form Retains Data & Misplaced Counters**
+
+#### 🧩 **A. Add Class Form Retains Previous Input**
+
+* When clicking **Add Class**, clear all previously entered data (e.g., days, times, course name).
+* The form should always open in a **clean state** unless editing.
+
+#### 👥 **B. Student Counter Visibility**
+
+* The **student counter** should only appear in **Manage Student** (admin side).
+* Remove it from other areas like class schedule or course management where it's not relevant.
+
+---
+
+Would you like this in PDF, Markdown, or a format ready for GitHub Issues or Jira tasks?
