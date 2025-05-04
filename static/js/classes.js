@@ -219,7 +219,7 @@ function renderClassesTable() {
     if (classes.length === 0) {
         classesTableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center">No classes found</td>
+                <td colspan="6" class="text-center">No classes found</td>
             </tr>
         `;
         return;
@@ -237,7 +237,6 @@ function renderClassesTable() {
             <td>${cls.description}</td>
             <td>${cls.roomNumber}</td>
             <td>${cls.schedule}</td>
-            <td>${cls.enrolledCount}</td>
             <td>${cls.instructorName}</td>
             <td>
                 <button class="action-btn edit-class" title="Edit Class">
@@ -841,7 +840,7 @@ function unenrollStudent(studentId, enrollmentId) {
 function showAddClassModal() {
     console.log('Showing add class modal');
     
-    // Reset the form
+    // Get all form elements
     const classForm = document.getElementById('class-form');
     const classIdInput = document.getElementById('classId');
     const classCodeInput = document.getElementById('classCode');
@@ -849,30 +848,63 @@ function showAddClassModal() {
     const descriptionInput = document.getElementById('description');
     const roomNumberInput = document.getElementById('roomNumber');
     const scheduleInput = document.getElementById('schedule');
+    const instructorIdSelect = document.getElementById('instructorId');
     const modalTitle = document.getElementById('class-modal-title');
+    const scheduleDisplay = document.getElementById('scheduleDisplay');
     
-    if (classForm && classIdInput && classCodeInput && courseSelect && 
-        descriptionInput && roomNumberInput && scheduleInput && modalTitle) {
+    // Completely reset the form
+    if (classForm) {
         classForm.reset();
-        classIdInput.value = '';
-        classCodeInput.value = '';
-        descriptionInput.value = '';
-        
-        modalTitle.textContent = 'Add New Class';
-        selectedClassId = null;
-        
-        // Reset schedule builder
-        if (typeof setupScheduleBuilder === 'function') {
-            setupScheduleBuilder();
-        }
     }
+    
+    // Clear all form fields manually to ensure no residual data
+    if (classIdInput) classIdInput.value = '';
+    if (classCodeInput) classCodeInput.value = '';
+    if (descriptionInput) descriptionInput.value = '';
+    if (roomNumberInput) roomNumberInput.value = '';
+    if (scheduleInput) scheduleInput.value = '';
+    
+    // Reset the course dropdown
+    if (courseSelect) {
+        // Clear selection by setting to the first blank option
+        courseSelect.selectedIndex = 0;
+    }
+    
+    // Reset instructor dropdown to first option
+    if (instructorIdSelect && instructorIdSelect.options.length > 0) {
+        instructorIdSelect.selectedIndex = 0;
+    }
+    
+    // Reset day checkboxes
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    dayCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Clear schedule display
+    if (scheduleDisplay) {
+        scheduleDisplay.innerHTML = '<span class="text-muted">No time slots added</span>';
+    }
+    
+    // Reset time inputs to default values
+    const startTime = document.getElementById('startTime');
+    const endTime = document.getElementById('endTime');
+    if (startTime) startTime.value = '10:00';
+    if (endTime) endTime.value = '12:00';
+    
+    if (modalTitle) {
+        modalTitle.textContent = 'Add New Class';
+    }
+    
+    // Clear the selected class ID
+    selectedClassId = null;
     
     // Show the modal
     const classModal = document.getElementById('class-modal');
     if (classModal) {
         classModal.classList.add('show');
         
-        // Set initial focus
+        // Set initial focus after a small delay to ensure DOM is ready
         if (courseSelect) {
             setTimeout(() => courseSelect.focus(), 100);
         }
