@@ -573,6 +573,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('instructorId').value = classData.instructorId;
         document.getElementById('classId').value = classData.id;
         
+        // Set up schedule builder with existing schedule
+        if (window.setupScheduleBuilder && typeof window.setupScheduleBuilder === 'function') {
+            window.setupScheduleBuilder(classData.schedule);
+        }
+        
         // Set course dropdown
         const courseSelect = document.getElementById('course');
         if (courseSelect) {
