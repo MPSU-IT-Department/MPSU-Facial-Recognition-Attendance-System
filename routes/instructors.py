@@ -740,3 +740,96 @@ def generate_student_id():
     next_id = f"{year}-{(max_id + 1):05d}"
     
     return jsonify({'success': True, 'id': next_id})
+
+@instructors_bp.route('/api/create-student', methods=['POST'])
+@login_required
+def create_student():
+    """Create a new student"""
+    # Only allow instructors and admins
+    if current_user.role not in ['instructor', 'admin']:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.get_json()
+    
+    # Validate data
+    if not data or not all(key in data for key in ['firstName', 'lastName', 'id', 'yearLevel', 'phone']):
+        return jsonify({'success': False, 'message': 'Missing required student data'})
+    
+    # Check if student ID already exists
+    existing_student = Student.query.get(data['id'])
+    if existing_student:
+        return jsonify({'success': False, 'message': 'Student ID already exists'})
+    
+    # Create new student
+    student = Student(
+        id=data['id'],
+        first_name=data['firstName'],
+        last_name=data['lastName'],
+        year_level=data['yearLevel'],
+        phone=data['phone'],
+        email=data.get('email', None)
+    )
+    
+    try:
+        db.session.add(student)
+        db.session.commit()
+        return jsonify({
+            'success': True, 
+            'message': 'Student created successfully',
+            'student': {
+                'id': student.id,
+                'firstName': student.first_name,
+                'lastName': student.last_name,
+                'yearLevel': student.year_level,
+                'phone': student.phone,
+                'email': student.email or '',
+                'enrolledClasses': [],
+                'profileImage': None
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+        
+@instructors_bp.route('/api/update-student/<string:student_id>', methods=['POST'])
+@login_required
+def update_student(student_id):
+    """Update an existing student"""
+    # Access check - instructors can only update students in their classes
+    if current_user.role == 'instructor':
+        # Check if student is in any of this instructor's classes
+        classes = Class.query.filter_by(instructor_id=current_user.id).all()
+        class_ids = [class_obj.id for class_obj in classes]
+        
+        enrollment = Enrollment.query.filter(
+            Enrollment.student_id == student_id,
+            Enrollment.class_id.in_(class_ids)
+        ).first()
+        
+        if not enrollment:
+            return jsonify({'success': False, 'message': 'Student not found in your classes'})
+    elif current_user.role != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    # Get the student
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'success': False, 'message': 'Student not found'})
+    
+    data = request.get_json()
+    
+    # Update student info
+    student.first_name = data.get('firstName', student.first_name)
+    student.last_name = data.get('lastName', student.last_name)
+    student.year_level = data.get('yearLevel', student.year_level)
+    student.phone = data.get('phone', student.phone)
+    student.email = data.get('email', student.email)
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Student updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+        
+

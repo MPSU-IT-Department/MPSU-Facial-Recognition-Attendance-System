@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadStudents() {
         try {
             // Get all students related to the instructor's classes
-            const response = await fetch('/students/api/list');
+            const response = await fetch('/instructors/api/my-students');
             const students = await response.json();
             
             state.students = students;
@@ -548,8 +548,8 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         try {
-            const response = await fetch(`/students/api/update/${state.currentStudentId}`, {
-                method: 'PUT',
+            const response = await fetch(`/instructors/api/update-student/${state.currentStudentId}`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
