@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load student images
         try {
-            const response = await fetch(`/instructors/api/student-images/${studentId}`);
+            const response = await fetch(`/students/api/images/${studentId}`);
             const data = await response.json();
             
             if (data.success) {
