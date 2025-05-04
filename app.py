@@ -45,11 +45,15 @@ from routes.auth import auth_bp
 from routes.students import students_bp
 from routes.classes import classes_bp
 from routes.attendance import attendance_bp
+from routes.instructors import instructors_bp
+from routes.courses import courses_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(students_bp)
 app.register_blueprint(classes_bp)
 app.register_blueprint(attendance_bp)
+app.register_blueprint(instructors_bp)
+app.register_blueprint(courses_bp)
 
 # Root route to redirect to login page
 @app.route('/')

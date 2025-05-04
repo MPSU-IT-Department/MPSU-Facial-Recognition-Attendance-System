@@ -25,9 +25,8 @@
                 <a href="{{ url_for('students.enroll') }}" class="menu-item {% if request.endpoint == 'students.enroll' %}active{% endif %}">Manage Students</a>
                 <a href="{{ url_for('classes.schedule') }}" class="menu-item {% if request.endpoint == 'classes.schedule' %}active{% endif %}">Manage Classes</a>
                 <a href="{{ url_for('attendance.manage') }}" class="menu-item {% if request.endpoint == 'attendance.manage' %}active{% endif %}">Student Attendance</a>
-                <a href="#" class="menu-item">Manage Instructors</a>
-                <a href="#" class="menu-item">Manage Courses</a>
-                <a href="#" class="menu-item">System Settings</a>
+                <a href="{{ url_for('instructors.manage') }}" class="menu-item {% if request.endpoint == 'instructors.manage' %}active{% endif %}">Manage Instructors</a>
+                <a href="{{ url_for('courses.manage') }}" class="menu-item {% if request.endpoint == 'courses.manage' %}active{% endif %}">Manage Courses</a>
             {% else %}
                 <!-- Instructor Menu Items -->
                 <a href="{{ url_for('classes.schedule') }}" class="menu-item {% if request.endpoint == 'classes.schedule' %}active{% endif %}">My Classes</a>

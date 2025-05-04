@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Instructors{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="header-title mb-4">Manage Instructors</h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <span class="fs-5 me-2">Total Instructors:</span>
+                    <span class="badge bg-primary fs-5">{{ instructors|length }}</span>
+                </div>
+                <button class="btn btn-add-student" data-bs-toggle="modal" data-bs-target="#addInstructorModal">
+                    <i class="fas fa-plus"></i> Add Instructor
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                    <th>Classes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for instructor in instructors %}
+                                <tr>
+                                    <td>{{ instructor.first_name }} {{ instructor.last_name }}</td>
+                                    <td>{{ instructor.username }}</td>
+                                    <td>{{ instructor.email }}</td>
+                                    <td>{{ instructor.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ instructor.classes|length }}</td>
+                                    <td>
+                                        <button class="btn action-btn btn-delete" 
+                                                onclick="confirmDelete('{{ instructor.id }}', '{{ instructor.first_name }} {{ instructor.last_name }}')"
+                                                {% if instructor.classes|length > 0 %}disabled{% endif %}>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if instructors|length == 0 %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">No instructors found. Add an instructor to get started.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Instructor Modal -->
+<div class="modal fade" id="addInstructorModal" tabindex="-1" aria-labelledby="addInstructorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addInstructorModalLabel">Add New Instructor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('instructors.add') }}">
+                {{ form.hidden_tag() }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        {{ form.username(class="form-control", placeholder="Enter username") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        {{ form.email(class="form-control", placeholder="Enter email") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            {{ form.first_name(class="form-control", placeholder="First name") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            {{ form.last_name(class="form-control", placeholder="Last name") }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        {{ form.password(class="form-control", placeholder="Enter password") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        {{ form.confirm_password(class="form-control", placeholder="Confirm password") }}
+                    </div>
+                    <!-- Hide the role field since we're forcing 'instructor' role -->
+                    <div class="d-none">
+                        {{ form.role }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Instructor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the instructor <span id="instructorName"></span>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(instructorId, name) {
+        document.getElementById('instructorName').textContent = name;
+        document.getElementById('deleteForm').action = "{{ url_for('instructors.delete', instructor_id=0) }}".replace("0", instructorId);
+        
+        // Show the confirmation modal
+        var modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}
