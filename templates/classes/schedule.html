@@ -51,9 +51,11 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 id="class-detail-title">Class Detail</h2>
             <div>
+                {% if current_user.role == 'instructor' %}
                 <button class="btn btn-primary me-2" id="enroll-student-btn">
                     <i class="fas fa-user-plus"></i> Enroll Student
                 </button>
+                {% endif %}
                 <button class="btn btn-secondary back-button" id="back-to-classes">
                     <i class="fas fa-arrow-left"></i> Back to Classes
                 </button>

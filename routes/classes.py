@@ -175,6 +175,10 @@ def get_class_students(class_id):
 @classes_bp.route('/api/<int:class_id>/enroll', methods=['POST'])
 @login_required
 def enroll_student(class_id):
+    # Restrict access to instructors only
+    if current_user.role != 'instructor':
+        return jsonify({'success': False, 'message': 'Only instructors can enroll students'}), 403
+    
     # Check if class exists
     cls = Class.query.get(class_id)
     if not cls:

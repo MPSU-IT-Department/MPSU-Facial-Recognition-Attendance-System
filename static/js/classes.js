@@ -345,19 +345,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Get current user role from the page
+        const isInstructor = document.querySelector('.user-role')?.textContent.trim().toLowerCase() === 'instructor';
+        
         students.forEach(student => {
             const row = document.createElement('tr');
+            
+            // Only show unenroll button for instructors
+            const actionColumn = isInstructor ? `
+                <td>
+                    <button class="btn btn-danger btn-sm unenroll-btn" data-student-id="${student.id}">
+                        Unenroll
+                    </button>
+                </td>
+            ` : '<td>-</td>';
             
             row.innerHTML = `
                 <td>${student.firstName} ${student.lastName}</td>
                 <td>${student.id}</td>
                 <td>${student.yearLevel}</td>
                 <td>${student.phone}</td>
-                <td>
-                    <button class="btn btn-danger btn-sm unenroll-btn" data-student-id="${student.id}">
-                        Unenroll
-                    </button>
-                </td>
+                ${actionColumn}
             `;
             
             elements.enrolledStudentsList.appendChild(row);
@@ -592,10 +600,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success) {
                 // Update UI by refreshing the class detail view
-                showClassDetailView(classId);
-                
                 showAlert('Student unenrolled successfully', 'success');
+                
+                // Refresh the enrolled students list
+                const response = await fetch(`/classes/api/${classId}/students`);
+                if (response.ok) {
+                    const students = await response.json();
+                    renderEnrolledStudents(students);
+                }
             } else {
+                // Just show the error message without refreshing the view
                 showAlert(data.message || 'Failed to unenroll student', 'danger');
             }
             
