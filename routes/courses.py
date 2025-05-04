@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify, flash
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify, flash, session
 from flask_login import login_required, current_user
 import datetime
 
@@ -12,8 +12,20 @@ courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 @login_required
 def get_courses():
     """API endpoint to get all unique courses"""
-    courses = db.session.query(Class.class_code, Class.description).distinct().all()
-    course_list = [{'code': code, 'description': desc} for code, desc in courses]
+    # Get courses from database
+    db_courses = db.session.query(Class.class_code, Class.description).distinct().all()
+    course_list = [{'code': code, 'description': desc} for code, desc in db_courses]
+    
+    # Add courses from session if they don't exist in the database yet
+    if 'courses' in session:
+        for code, course_data in session['courses'].items():
+            # Only add if not already in our result list
+            if not any(c['code'] == code for c in course_list):
+                course_list.append({
+                    'code': course_data['code'],
+                    'description': course_data['description']
+                })
+    
     return jsonify(course_list)
 
 @courses_bp.route('/manage', methods=['GET'])
@@ -24,8 +36,16 @@ def manage():
         flash('You do not have permission to access this page.', 'danger')
         return redirect(url_for('students.enroll'))
     
-    # Get all unique courses by examining class descriptions
-    courses = db.session.query(Class.class_code, Class.description).distinct().all()
+    # Get all unique courses from database
+    db_courses = db.session.query(Class.class_code, Class.description).distinct().all()
+    courses = list(db_courses)  # Convert to list for appending
+    
+    # Add courses from session if they don't exist in the database yet
+    if 'courses' in session:
+        existing_codes = {code for code, _ in courses}
+        for code, course_data in session['courses'].items():
+            if code not in existing_codes:
+                courses.append((code, course_data['description']))
     
     return render_template('courses/manage.html', courses=courses)
 
@@ -52,27 +72,18 @@ def add():
         return redirect(url_for('courses.manage'))
     
     try:
-        # Create a placeholder class with this course code and description
-        # It won't be visible in the class schedule until fully configured
-        # with a room, schedule, and instructor
-        from models import User
-        admin_user = User.query.filter_by(role='admin').first()
+        # Store course info in session for use when creating a class
+        # This avoids creating a Class entry prematurely
+        if 'courses' not in session:
+            session['courses'] = {}
         
-        new_class = Class(
-            class_code=class_code,
-            description=description,
-            room_number="TBD",  # Placeholder
-            schedule="TBD",     # Placeholder
-            instructor_id=admin_user.id,  # Default to admin as placeholder
-            created_at=datetime.datetime.utcnow()
-        )
-        
-        db.session.add(new_class)
-        db.session.commit()
+        session['courses'][class_code] = {
+            'code': class_code,
+            'description': description
+        }
         
         flash(f'Course "{class_code}: {description}" has been added.', 'success')
     except Exception as e:
-        db.session.rollback()
         flash(f'Error adding course: {str(e)}', 'danger')
     
     return redirect(url_for('courses.manage'))
@@ -123,7 +134,14 @@ def delete(course_code):
         return redirect(url_for('students.enroll'))
     
     try:
-        # Get all classes with this course code
+        # Check if this course exists in the session
+        if 'courses' in session and course_code in session['courses']:
+            # Simply remove from session
+            del session['courses'][course_code]
+            flash(f'Course "{course_code}" removed successfully!', 'success')
+            return redirect(url_for('courses.manage'))
+        
+        # If not in session, look for it in the database
         classes = Class.query.filter_by(class_code=course_code).all()
         
         if not classes:
