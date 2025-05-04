@@ -132,17 +132,68 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the application
     async function init() {
         try {
-            await Promise.all([
-                fetchClasses(),
-                fetchStudents(),
-                fetchCourses()
-            ]);
+            // Try to fetch each resource separately to identify which one is failing
+            let errorMessages = [];
+            let fetchSuccess = true;
+            
+            try {
+                await fetchClasses();
+            } catch (e) {
+                console.error('Error fetching classes:', e);
+                errorMessages.push('classes');
+                fetchSuccess = false;
+                // Default to empty array to allow UI to render
+                state.classes = [];
+            }
+            
+            try {
+                await fetchStudents();
+            } catch (e) {
+                console.error('Error fetching students:', e);
+                errorMessages.push('students');
+                fetchSuccess = false;
+                // Default to empty array to allow UI to render
+                state.students = [];
+            }
+            
+            try {
+                await fetchCourses();
+            } catch (e) {
+                console.error('Error fetching courses:', e);
+                errorMessages.push('courses');
+                fetchSuccess = false;
+                // Default to empty array to allow UI to render
+                state.courses = [];
+            }
+            
+            // Even if some fetches failed, continue with what we have
             renderClassesTable();
             addEventListeners();
             showClassesView();
+            
+            // Show specific error message if any fetch failed
+            if (!fetchSuccess) {
+                let errorMessage = 'Failed to load ' + errorMessages.join(', ') + '. ';
+                errorMessage += 'Some data may be missing. Please refresh the page to try again.';
+                showAlert(errorMessage, 'warning');
+            }
         } catch (error) {
             console.error('Initialization error:', error);
-            showAlert('Failed to load data. Please try again.', 'danger');
+            showAlert('Failed to load data. Please try again by refreshing the page.', 'danger');
+            
+            // Display helpful debug info on the page
+            if (elements.classesTableBody) {
+                elements.classesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            <div class="alert alert-danger mb-0">
+                                <p>Failed to load data. Please try refreshing the page.</p>
+                                <p><small>Error details: ${error.message || 'Unknown error'}</small></p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
         }
     }
     
