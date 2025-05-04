@@ -54,3 +54,20 @@
 .clickable-row:hover {
     background-color: rgba(0, 123, 255, 0.1);
 }
+
+/* Fix for dropdown styling */
+select.form-control {
+    -webkit-appearance: menulist-button;
+    appearance: menulist-button;
+    position: relative;
+    z-index: auto;
+}
+
+/* This prevents unwanted dropdowns showing */
+#course option {
+    display: none;
+}
+
+#course:focus option {
+    display: block;
+}

@@ -125,7 +125,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add time slot button click
     if (addTimeBtn) {
+        console.log('Add time button found, setting up click event');
+        // Remove any existing event listeners to prevent duplicates
+        addTimeBtn.removeEventListener('click', addTimeSlot);
+        // Add fresh event listener
         addTimeBtn.addEventListener('click', addTimeSlot);
+        // For debugging purposes
+        addTimeBtn.onclick = function(e) {
+            console.log('Add time button clicked via onclick property');
+            e.preventDefault();
+            addTimeSlot();
+        };
+    } else {
+        console.error('Add time button not found in the DOM');
     }
     
     // Add a time slot
