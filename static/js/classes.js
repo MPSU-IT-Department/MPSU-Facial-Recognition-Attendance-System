@@ -553,13 +553,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success) {
                 if (state.isEditingClass) {
-                    // Update in state
+                    // Update in state with complete class data from server
                     const index = state.classes.findIndex(c => c.id === parseInt(formData.get('classId')));
                     if (index !== -1) {
-                        state.classes[index] = {
-                            ...state.classes[index],
-                            ...classData
-                        };
+                        if (data.class) {
+                            // Use complete class data from server if available
+                            state.classes[index] = data.class;
+                        } else {
+                            // Fallback to just updating fields from form
+                            state.classes[index] = {
+                                ...state.classes[index],
+                                ...classData
+                            };
+                            
+                            // Update instructor name by getting the selected option text
+                            const instructorSelect = document.getElementById('instructorId');
+                            if (instructorSelect && instructorSelect.selectedIndex >= 0) {
+                                const selectedOption = instructorSelect.options[instructorSelect.selectedIndex];
+                                state.classes[index].instructorName = selectedOption.text;
+                            }
+                        }
                     }
                     
                     showAlert('Class updated successfully', 'success');

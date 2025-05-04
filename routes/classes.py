@@ -122,7 +122,28 @@ def update_class(class_id):
     
     try:
         db.session.commit()
-        return jsonify({'success': True, 'message': 'Class updated successfully'})
+        
+        # Get the updated instructor information
+        instructor = User.query.get(cls.instructor_id)
+        instructor_name = f"{instructor.first_name} {instructor.last_name}" if instructor else "Unknown"
+        
+        # Count enrolled students
+        enrolled_count = Enrollment.query.filter_by(class_id=cls.id).count()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Class updated successfully',
+            'class': {
+                'id': cls.id,
+                'classCode': cls.class_code,
+                'description': cls.description,
+                'roomNumber': cls.room_number,
+                'schedule': cls.schedule,
+                'instructorId': cls.instructor_id,
+                'instructorName': instructor_name,
+                'enrolledCount': enrolled_count
+            }
+        })
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
