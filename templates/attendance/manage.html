@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Student Attendance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .attendance-summary {
+        margin-top: 18px;
+        display: flex;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .attendance-counter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-size: 1.15rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        letter-spacing: 0.02em;
+        border: none;
+        background: none;
+    }
+
+    .attendance-counter.present {
+        background: #198754;
+        color: #fff;
+    }
+
+    .attendance-counter.absent {
+        background: #dc3545;
+        color: #fff;
+    }
+
+    .attendance-counter .counter-icon {
+        font-size: 1.3em;
+        margin-right: 8px;
+        color: #fff;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Class Attendance Overview -->
+    <div id="classOverview">
+        <h2>Class Attendance</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Class Code</th>
+                        <th>Course Description</th>
+                        <th>Students</th>
+                        <th>Schedule</th>
+                        <th>Date</th>
+                        <th>Attended</th>
+                    </tr>
+                </thead>
+                <tbody id="class-overview-tbody">
+                    <!-- Populated by JS -->
+                    <tr>
+                        <td colspan="6" class="text-center">Loading class data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Class Detail View -->
+    <div id="classDetailView" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 id="classDetailTitle">Class: </h2>
+                <h5 id="classDetailCode">Class Code: </h5>
+            </div>
+            <button class="btn btn-primary back-button" id="backToOverview">&#8592; Back</button>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Student Attendance</h5>
+                    <div class="d-flex align-items-center">
+                        <input type="date" id="attendanceDate" class="form-control me-2" value="{{ today }}">
+                        <button id="changeDate" class="btn btn-outline-primary">Change Date</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="class-detail-tbody">
+                            <!-- Populated by JS -->
+                            <tr>
+                                <td colspan="3" class="text-center">Loading student attendance...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Detail View -->
+    <div id="studentDetailView" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="student-info-card">
+                <h2 id="studentDetailTitle">Student: </h2>
+                <h5 id="studentDetailClass">Class: </h5>
+                <div class="attendance-summary">
+                    <span class="attendance-counter present">
+                        <span class="counter-icon">✔</span>
+                        Present: <span id="presentCount">0</span>
+                    </span>
+                    <span class="attendance-counter absent">
+                        <span class="counter-icon">✖</span>
+                        Absent: <span id="absentCount">0</span>
+                    </span>
+                </div>
+            </div>
+            <button class="btn btn-primary back-button" id="backToAttendance">&#8592; Back</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Attendance History</h5>
+                    <div>
+                        <select id="monthSelector" class="form-select">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered attendance-table" id="studentDatesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentDatesBody">
+                            <!-- Student dates will be populated here -->
+                            <tr>
+                                <td colspan="3" class="text-center">Loading attendance history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+<script>
+    // Set current date in the date picker
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('attendanceDate');
+        if (dateInput) {
+            dateInput.value = today;
+        }
+        
+        // Set current month in the month selector
+        const currentMonth = new Date().getMonth() + 1; // January is 0
+        const monthSelector = document.getElementById('monthSelector');
+        if (monthSelector) {
+            monthSelector.value = currentMonth;
+        }
+        
+        // Add change date event listener
+        document.getElementById('changeDate')?.addEventListener('click', function() {
+            const selectedDate = document.getElementById('attendanceDate').value;
+            const classId = state.currentClassId;
+            
+            if (classId) {
+                // Fetch attendance for the selected date
+                fetch(`/attendance/api/class/${classId}/attendance?date=${selectedDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderClassAttendance(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching attendance for selected date:', error);
+                        showAlert('Failed to load attendance for the selected date', 'danger');
+                    });
+            }
+        });
+        
+        // Add month selector event listener
+        document.getElementById('monthSelector')?.addEventListener('change', function() {
+            const selectedMonth = this.value;
+            const currentYear = new Date().getFullYear();
+            const monthStr = `${currentYear}-${selectedMonth.padStart(2, '0')}`;
+            const studentId = state.currentStudentId;
+            const classId = state.currentClassId;
+            
+            if (studentId && classId) {
+                // Fetch attendance for the selected month
+                fetch(`/attendance/api/student/${studentId}/attendance?class_id=${classId}&month=${monthStr}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderStudentAttendanceDates(data.attendance);
+                        document.getElementById('presentCount').textContent = data.presentCount;
+                        document.getElementById('absentCount').textContent = data.absentCount;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching attendance for selected month:', error);
+                        showAlert('Failed to load attendance for the selected month', 'danger');
+                    });
+            }
+        });
+    });
+</script>
+{% endblock %}

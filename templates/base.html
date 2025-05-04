@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Pass - {% block title %}Attendance System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sidebar.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <button id="mobile-toggle" class="mobile-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">Class Pass</div>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('students.enroll') }}" class="menu-item {% if request.endpoint == 'students.enroll' %}active{% endif %}">Enroll Students</a>
+            <a href="{{ url_for('classes.schedule') }}" class="menu-item {% if request.endpoint == 'classes.schedule' %}active{% endif %}">Class Schedule</a>
+            <a href="{{ url_for('attendance.manage') }}" class="menu-item {% if request.endpoint == 'attendance.manage' %}active{% endif %}">Manage Student Attendance</a>
+        </div>
+        <div class="user-section">
+            <img src="https://i.pravatar.cc/100" alt="User" class="user-avatar">
+            <div class="user-info">
+                <p class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</p>
+            </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <div class="{% if current_user.is_authenticated %}main-content{% endif %}">
+        <div id="alertContainer"></div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

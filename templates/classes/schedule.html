@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Class Schedule{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Class Schedule Main View -->
+    <div id="classes-view">
+        <div class="content-header">
+            <h2 class="header-title">Class Schedule</h2>
+            <button class="btn-add-class" id="add-class-btn">
+                <i class="fas fa-plus"></i> Add Class
+            </button>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-add-section mb-4">
+            <div class="search-box">
+                <input type="text" id="searchClassInput" placeholder="Search classes...">
+                <button class="search-btn" id="searchClassBtn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Classes Table -->
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Course Description</th>
+                        <th>Room</th>
+                        <th>Schedule</th>
+                        <th>Students</th>
+                        <th>Instructor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="classes-table-body">
+                    <!-- Classes will be populated by JavaScript -->
+                    <tr>
+                        <td colspan="6" class="text-center">Loading classes...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Class Detail View -->
+    <div id="class-detail-view" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="class-detail-title">Class Detail</h2>
+            <div>
+                <button class="btn btn-primary me-2" id="enroll-student-btn">
+                    <i class="fas fa-user-plus"></i> Enroll Student
+                </button>
+                <button class="btn btn-secondary back-button" id="back-to-classes">
+                    <i class="fas fa-arrow-left"></i> Back to Classes
+                </button>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Enrolled Students</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>ID</th>
+                                <th>Year Level</th>
+                                <th>Phone</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="enrolled-students-list">
+                            <!-- Enrolled students will be populated by JavaScript -->
+                            <tr>
+                                <td colspan="5" class="text-center">Loading enrolled students...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Selection View -->
+    <div id="student-selection-view" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Select Students to Enroll</h2>
+            <button class="btn btn-secondary back-button" id="back-to-class-detail">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">All Students</h5>
+                    <div class="search-box">
+                        <input type="text" id="searchStudentInput" placeholder="Search students...">
+                        <button class="search-btn" id="searchStudentBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>ID</th>
+                                <th>Year Level</th>
+                                <th>Phone</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-students-list">
+                            <!-- All students will be populated by JavaScript -->
+                            <tr>
+                                <td colspan="5" class="text-center">Loading students...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Class Modal -->
+<div class="modal-overlay" id="class-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="class-modal-title">Add New Class</h5>
+                <button type="button" class="close-btn" id="close-class-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="class-form">
+                    <input type="hidden" id="classId" name="classId">
+                    <div class="form-group">
+                        <label for="classCode">Class Code</label>
+                        <input type="text" class="form-control" id="classCode" name="classCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Course Description</label>
+                        <input type="text" class="form-control" id="description" name="description" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomNumber">Room Number</label>
+                        <input type="text" class="form-control" id="roomNumber" name="roomNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="schedule">Schedule</label>
+                        <input type="text" class="form-control" id="schedule" name="schedule" placeholder="e.g., MWF 9:00-10:30 AM" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="instructorId">Instructor</label>
+                        <select class="form-control" id="instructorId" name="instructorId" required>
+                            {% for id, name in form.instructor_id.choices %}
+                            <option value="{{ id }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-save">Save Class</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmation-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="close-btn" id="close-confirmation-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmation-text">Are you sure you want to proceed?</p>
+                <div class="confirmation-buttons">
+                    <button class="btn-no" id="confirm-no">No</button>
+                    <button class="btn-yes" id="confirm-yes">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+{% endblock %}

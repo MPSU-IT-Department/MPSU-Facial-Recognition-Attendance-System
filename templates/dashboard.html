@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mt-4 mb-4">Welcome, {{ current_user.first_name }} {{ current_user.last_name }}</h2>
+            
+            <div class="row">
+                <!-- Quick Stats -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Students</h5>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="display-4 me-3">
+                                    <i class="fas fa-user-graduate text-primary"></i>
+                                </div>
+                                <div class="fs-2 fw-bold" id="student-count">
+                                    Loading...
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2">Total enrolled students</p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('students.enroll') }}" class="btn btn-outline-primary">Manage Students</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Classes Card -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Classes</h5>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="display-4 me-3">
+                                    <i class="fas fa-chalkboard-teacher text-success"></i>
+                                </div>
+                                <div class="fs-2 fw-bold" id="class-count">
+                                    Loading...
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2">Active class schedules</p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('classes.schedule') }}" class="btn btn-outline-success">Manage Classes</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Attendance Card -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Attendance</h5>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="display-4 me-3">
+                                    <i class="fas fa-clipboard-check text-danger"></i>
+                                </div>
+                                <div class="fs-2 fw-bold" id="attendance-today">
+                                    <span id="present-count">-</span>/<span id="total-count">-</span>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2">Present today</p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('attendance.manage') }}" class="btn btn-outline-danger">Manage Attendance</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Today's Classes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Class</th>
+                                            <th>Schedule</th>
+                                            <th>Room</th>
+                                            <th>Students</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="today-classes">
+                                        <tr>
+                                            <td colspan="5" class="text-center">Loading today's classes...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Fetch students count
+            const studentsResponse = await fetch('/students/api/list');
+            const students = await studentsResponse.json();
+            document.getElementById('student-count').textContent = students.length;
+            
+            // Fetch classes count
+            const classesResponse = await fetch('/classes/api/list');
+            const classes = await classesResponse.json();
+            document.getElementById('class-count').textContent = classes.length;
+            
+            // Fetch attendance data
+            const attendanceResponse = await fetch('/attendance/api/classes');
+            const attendanceData = await attendanceResponse.json();
+            
+            // Calculate total present students today
+            let presentCount = 0;
+            let totalCount = 0;
+            
+            attendanceData.forEach(cls => {
+                presentCount += cls.presentCount;
+                totalCount += cls.enrolledCount;
+            });
+            
+            document.getElementById('present-count').textContent = presentCount;
+            document.getElementById('total-count').textContent = totalCount;
+            
+            // Render today's classes
+            const todayClassesTable = document.getElementById('today-classes');
+            todayClassesTable.innerHTML = '';
+            
+            if (classes.length === 0) {
+                todayClassesTable.innerHTML = '<tr><td colspan="5" class="text-center">No classes scheduled for today</td></tr>';
+            } else {
+                classes.forEach(cls => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${cls.description}</td>
+                        <td>${cls.schedule}</td>
+                        <td>${cls.roomNumber}</td>
+                        <td>${cls.enrolledCount}</td>
+                        <td>
+                            <a href="/attendance/manage" class="btn btn-sm btn-primary">Take Attendance</a>
+                        </td>
+                    `;
+                    
+                    todayClassesTable.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+        }
+    });
+</script>
+{% endblock %}

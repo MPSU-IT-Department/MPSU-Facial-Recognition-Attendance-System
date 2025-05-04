@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-form-container">
+        <div id="login-view" class="login-form {% if register %}d-none{% endif %}">
+            <h2 class="login-title">Login to Class Pass</h2>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                    {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {{ form.submit(class="login-btn") }}
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+            </div>
+        </div>
+        
+        <div id="register-view" class="login-form {% if not register %}d-none{% endif %}">
+            <h2 class="login-title">Create Account</h2>
+            
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    {{ form.username(class="form-control", id="username", placeholder="Choose a username") }}
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if register %}
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    {{ form.email(class="form-control", id="email", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    {{ form.first_name(class="form-control", id="first_name", placeholder="Enter your first name") }}
+                    {% if form.first_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.first_name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    {{ form.last_name(class="form-control", id="last_name", placeholder="Enter your last name") }}
+                    {% if form.last_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.last_name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm your password") }}
+                    {% if form.confirm_password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.confirm_password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="role" class="form-label">Role</label>
+                    {{ form.role(class="form-control", id="role") }}
+                    {% if form.role.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.role.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    {{ form.password(class="form-control", id="password", placeholder="Choose a password") }}
+                    {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {{ form.submit(class="login-btn", value="Register") }}
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="login-image">
+        <svg width="480" height="400" viewBox="0 0 480 400" xmlns="http://www.w3.org/2000/svg">
+            <!-- Education/Attendance illustrated graphic -->
+            <g fill="#ffffff" transform="translate(40, 20)">
+                <rect x="40" y="60" width="280" height="200" rx="10" opacity="0.2"/>
+                <rect x="60" y="100" width="240" height="30" rx="5" opacity="0.3"/>
+                <rect x="60" y="150" width="240" height="30" rx="5" opacity="0.3"/>
+                <rect x="60" y="200" width="240" height="30" rx="5" opacity="0.3"/>
+                <circle cx="320" cy="50" r="40" opacity="0.2"/>
+                <path d="M200,300 Q240,340 280,300" stroke="#ffffff" stroke-width="5" fill="none"/>
+                <text x="170" y="40" font-size="24" fill="#ffffff">Class Attendance System</text>
+            </g>
+        </svg>
+    </div>
+</div>
+{% endblock %}
