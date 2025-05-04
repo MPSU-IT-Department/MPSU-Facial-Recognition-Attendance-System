@@ -189,7 +189,7 @@ function fetchClasses() {
             console.error('Error fetching classes:', error);
             classesTableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-danger">
+                    <td colspan="6" class="text-center text-danger">
                         Error loading classes. Please try again later.<br>
                         <small>${error.message}</small>
                     </td>
@@ -201,7 +201,7 @@ function fetchClasses() {
             retryButton.textContent = 'Retry';
             retryButton.className = 'btn btn-sm btn-primary mt-2';
             retryButton.addEventListener('click', () => {
-                classesTableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading classes...</td></tr>';
+                classesTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading classes...</td></tr>';
                 fetchClasses();
             });
             
@@ -348,7 +348,7 @@ function searchClasses(query) {
     if (filteredClasses.length === 0) {
         classesTableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center">No classes found matching "${query}"</td>
+                <td colspan="6" class="text-center">No classes found matching "${query}"</td>
             </tr>
         `;
         return;
@@ -366,7 +366,6 @@ function searchClasses(query) {
             <td>${cls.description}</td>
             <td>${cls.roomNumber}</td>
             <td>${cls.schedule}</td>
-            <td>${cls.enrolledCount}</td>
             <td>${cls.instructorName}</td>
             <td>
                 <button class="action-btn edit-class" title="Edit Class">
