@@ -226,21 +226,14 @@ document.addEventListener('DOMContentLoaded', function() {
         endTimeInput.value = '';
     }
     
-    // Add Reset Days button to clear day selection
-    const resetDaysBtn = document.createElement('button');
-    resetDaysBtn.type = 'button';
-    resetDaysBtn.className = 'btn btn-outline-secondary btn-sm mt-2';
-    resetDaysBtn.textContent = 'Reset Day Selection';
-    resetDaysBtn.addEventListener('click', function() {
-        document.querySelectorAll('.day-btn.active').forEach(btn => {
-            btn.classList.remove('active');
+    // Add event listener for the Reset Days button
+    const resetDaysBtn = document.getElementById('resetDaysBtn');
+    if (resetDaysBtn) {
+        resetDaysBtn.addEventListener('click', function() {
+            document.querySelectorAll('.day-btn.active').forEach(btn => {
+                btn.classList.remove('active');
+            });
         });
-    });
-    
-    // Add the button to the day selection area
-    const daySelection = document.querySelector('.day-selection');
-    if (daySelection) {
-        daySelection.appendChild(resetDaysBtn);
     }
     
     // Initialize on load

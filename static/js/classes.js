@@ -284,8 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!state.isEditingClass) {
                     // Generate a suggested class code
                     const existingCodes = state.classes
-                        .filter(c => c.class_code.startsWith(courseData.code))
-                        .map(c => c.class_code);
+                        .filter(c => (c.class_code || c.classCode || '').startsWith(courseData.code))
+                        .map(c => c.class_code || c.classCode || '');
                     
                     if (existingCodes.length === 0) {
                         // First section with this course code
@@ -473,8 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.classes.forEach(classData => {
             const row = document.createElement('tr');
             
-            // Make the row clickable to show class details
-            row.classList.add('clickable-row');
+            // Store the class ID in dataset for reference
             row.dataset.classId = classData.id;
             
             row.innerHTML = `
@@ -496,13 +495,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             elements.classesTableBody.appendChild(row);
             
-            // Add click event to the row
-            row.addEventListener('click', function(e) {
-                // If the click was on an action button, don't navigate to details
-                if (e.target.closest('.action-btn')) return;
-                
-                showClassDetailView(parseInt(this.dataset.classId));
-            });
+            // Add click event to the row only for instructors
+            const isInstructor = document.querySelector('.user-role')?.textContent.trim().toLowerCase() === 'instructor';
+            if (isInstructor) {
+                row.addEventListener('click', function(e) {
+                    // If the click was on an action button, don't navigate to details
+                    if (e.target.closest('.action-btn')) return;
+                    
+                    showClassDetailView(parseInt(this.dataset.classId));
+                });
+                // Add clickable class to show it's interactive
+                row.classList.add('clickable-row');
+            }
         });
     }
 
