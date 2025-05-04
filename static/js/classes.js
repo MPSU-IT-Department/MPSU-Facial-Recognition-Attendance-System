@@ -710,17 +710,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = e.target;
         const formData = new FormData(form);
         
-        // Get the schedule value directly from the hidden input as a last resort
-        const scheduleValue = document.getElementById('schedule').value;
-        console.log('Form submission - schedule value:', scheduleValue);
+        // Debugging form data
+        for (let [key, value] of formData.entries()) {
+            console.log(`Form data - ${key}:`, value);
+        }
+        
+        // Get the schedule value directly from the hidden input 
+        // to ensure we capture any changes made by the schedule builder
+        const scheduleInput = document.getElementById('schedule');
+        const scheduleValue = scheduleInput ? scheduleInput.value : '';
+        console.log('Schedule input element found:', !!scheduleInput);
+        console.log('Schedule input value:', scheduleValue);
+        
+        if (!scheduleValue) {
+            alert('Please add at least one schedule time slot before saving.');
+            return;
+        }
         
         const classData = {
             classCode: formData.get('classCode'),
             description: formData.get('description'),
             roomNumber: formData.get('roomNumber'),
-            schedule: scheduleValue || formData.get('schedule'),
+            schedule: scheduleValue, // Always use the direct value
             instructorId: parseInt(formData.get('instructorId'))
         };
+        
+        console.log('Sending class data to server:', classData);
         
         try {
             let response;

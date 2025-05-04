@@ -111,8 +111,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Toggle day selection
     dayButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default form behavior
             this.classList.toggle('active');
+            console.log('Day button clicked:', this.dataset.day, 'Active:', this.classList.contains('active'));
+            // If checkbox inside, update it as well
+            const checkbox = this.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = this.classList.contains('active');
+            }
         });
     });
     
@@ -123,9 +130,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add a time slot
     function addTimeSlot() {
-        // Get selected days
-        const selectedDays = Array.from(document.querySelectorAll('.day-btn.active'))
-            .map(btn => btn.dataset.day);
+        console.log('Add time slot function called');
+        
+        // Get selected days - using more specific selector
+        const dayButtons = document.querySelectorAll('.schedule-builder .day-btn.active');
+        console.log('Active day buttons found:', dayButtons.length);
+        
+        const selectedDays = Array.from(dayButtons).map(btn => btn.dataset.day);
+        console.log('Selected days:', selectedDays);
         
         if (selectedDays.length === 0) {
             alert('Please select at least one day');
@@ -135,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get times
         const startTime = startTimeInput.value;
         const endTime = endTimeInput.value;
+        console.log('Time values:', startTime, endTime);
         
         if (!startTime || !endTime) {
             alert('Please select start and end times');
@@ -150,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const startDisplay = formatTimeFor12Hour(startTime);
         const endDisplay = formatTimeFor12Hour(endTime);
         const display = `${selectedDays.join('')} ${startDisplay}-${endDisplay}`;
+        console.log('Schedule display string created:', display);
         
         // Add to schedule items
         scheduleItems.push({
@@ -158,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
             endTime,
             display
         });
+        console.log('Current schedule items:', JSON.stringify(scheduleItems));
         
         // Update display
         updateScheduleDisplay();
@@ -166,6 +181,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // This allows adding multiple time slots for the same days
         startTimeInput.value = '';
         endTimeInput.value = '';
+        
+        // Force set the value directly too, as a failsafe
+        document.getElementById('schedule').value = scheduleItems.map(item => item.display).join(', ');
+        console.log('Schedule input value set directly:', document.getElementById('schedule').value);
     }
     
     // Update the schedule display
