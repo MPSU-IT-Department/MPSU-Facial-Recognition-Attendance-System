@@ -80,7 +80,113 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         if (elements.classForm) {
-            elements.classForm.addEventListener('submit', handleClassFormSubmit);
+            elements.classForm.addEventListener('submit', function(e) {
+                console.log('Form submit intercepted');
+                e.preventDefault();
+                
+                // Verify schedule data is present
+                const scheduleInput = document.getElementById('schedule');
+                const scheduleValue = scheduleInput ? scheduleInput.value : '';
+                
+                if (!scheduleValue) {
+                    alert('Please add at least one schedule time slot before saving.');
+                    return false;
+                }
+                
+                // Continue with form submission
+                handleClassFormSubmit(e);
+            });
+        }
+        
+        // Add time button listener for schedule
+        const addTimeBtn = document.getElementById('addTimeBtn');
+        if (addTimeBtn) {
+            console.log('Setting up direct handler for Add time button');
+            
+            // Remove any existing handlers to prevent duplicates
+            const oldClickHandler = addTimeBtn.onclick;
+            addTimeBtn.onclick = null;
+            
+            addTimeBtn.addEventListener('click', function(event) {
+                console.log('Add time button clicked directly through class.js handler');
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Get the required inputs
+                const startTime = document.getElementById('startTime').value;
+                const endTime = document.getElementById('endTime').value;
+                
+                if (!startTime || !endTime) {
+                    alert('Please select start and end times');
+                    return;
+                }
+                
+                if (startTime >= endTime) {
+                    alert('End time must be after start time');
+                    return;
+                }
+                
+                // Get selected days
+                const selectedDayButtons = document.querySelectorAll('.day-btn.active');
+                if (selectedDayButtons.length === 0) {
+                    alert('Please select at least one day');
+                    return;
+                }
+                
+                // Manually create the display text
+                const selectedDays = Array.from(selectedDayButtons).map(btn => btn.dataset.day);
+                const displayText = selectedDays.join('') + ' ' + 
+                                    formatTime(startTime) + '-' + 
+                                    formatTime(endTime);
+                
+                // Update the schedule display
+                const scheduleDisplay = document.getElementById('scheduleDisplay');
+                if (scheduleDisplay) {
+                    // If "No schedule set" is showing, clear it
+                    if (scheduleDisplay.querySelector('.text-muted')) {
+                        scheduleDisplay.innerHTML = '';
+                    }
+                    
+                    // Add the new schedule tag
+                    const tag = document.createElement('div');
+                    tag.className = 'schedule-tag';
+                    tag.innerHTML = displayText + 
+                                   '<span class="remove-schedule" data-text="' + displayText + '">&times;</span>';
+                    scheduleDisplay.appendChild(tag);
+                }
+                
+                // Update the hidden input
+                const scheduleInput = document.getElementById('schedule');
+                if (scheduleInput) {
+                    // If the input already has a value, append to it
+                    const currentValue = scheduleInput.value;
+                    scheduleInput.value = currentValue ? 
+                                        currentValue + ', ' + displayText : 
+                                        displayText;
+                                        
+                    console.log('Updated schedule input value:', scheduleInput.value);
+                }
+                
+                // Reset time inputs for next entry
+                document.getElementById('startTime').value = '';
+                document.getElementById('endTime').value = '';
+                
+                // Don't remove day selections to allow adding multiple slots
+            });
+        }
+        
+        // Helper function to format time for display
+        function formatTime(timeStr) {
+            try {
+                const [hours, minutes] = timeStr.split(':');
+                const hour = parseInt(hours, 10);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minutes} ${ampm}`;
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                return timeStr;
+            }
         }
 
         // Confirmation modal
@@ -715,70 +821,78 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Form data - ${key}:`, value);
         }
         
-        // Get the schedule value directly from the hidden input 
-        // to ensure we capture any changes made by the schedule builder
-        const scheduleInput = document.getElementById('schedule');
-        const scheduleValue = scheduleInput ? scheduleInput.value : '';
-        console.log('Schedule input element found:', !!scheduleInput);
-        console.log('Schedule input value:', scheduleValue);
+        // Double check for required fields
+        const classCode = formData.get('classCode');
+        const roomNumber = formData.get('roomNumber');
+        const instructorId = formData.get('instructorId');
         
-        if (!scheduleValue) {
-            // Try to manually get the schedule from the schedule builder
-            try {
-                const scheduleDisplay = document.getElementById('scheduleDisplay');
-                if (scheduleDisplay && scheduleDisplay.textContent !== 'No schedule set' && 
-                    !scheduleDisplay.querySelector('.text-muted')) {
-                    
-                    // Get all schedule tags
-                    const scheduleTags = scheduleDisplay.querySelectorAll('.schedule-tag');
-                    if (scheduleTags.length > 0) {
-                        // Extract text content from each tag (excluding the "×" button)
-                        const scheduleTexts = Array.from(scheduleTags).map(tag => {
-                            const clone = tag.cloneNode(true);
-                            // Remove the remove button
-                            const removeBtn = clone.querySelector('.remove-schedule');
-                            if (removeBtn) {
-                                removeBtn.remove();
-                            }
-                            return clone.textContent.trim();
-                        });
-                        
-                        // Join the schedules
-                        const recoveredSchedule = scheduleTexts.join(', ');
-                        console.log('Recovered schedule from display:', recoveredSchedule);
-                        
-                        // Set it manually on the input
-                        scheduleInput.value = recoveredSchedule;
-                        
-                        // Use the recovered value
-                        formData.set('schedule', recoveredSchedule);
-                    } else {
-                        alert('Please add at least one schedule time slot before saving.');
-                        return;
-                    }
-                } else {
-                    alert('Please add at least one schedule time slot before saving.');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error recovering schedule:', error);
-                alert('Please add at least one schedule time slot before saving.');
-                return;
+        if (!classCode || !roomNumber || !instructorId) {
+            alert('Please fill in all required fields (Class Code, Room Number, and Instructor)');
+            return;
+        }
+        
+        // Get the schedule from the display div directly first, as it's most reliable
+        let scheduleValue = '';
+        const scheduleDisplay = document.getElementById('scheduleDisplay');
+        
+        if (scheduleDisplay) {
+            // First check if we have schedule tags
+            const scheduleTags = scheduleDisplay.querySelectorAll('.schedule-tag');
+            
+            if (scheduleTags && scheduleTags.length > 0) {
+                // Extract text from each tag (excluding the "×" button)
+                const scheduleTexts = Array.from(scheduleTags).map(tag => {
+                    // Clone to safely manipulate
+                    const clone = tag.cloneNode(true);
+                    const removeBtn = clone.querySelector('.remove-schedule');
+                    if (removeBtn) removeBtn.remove();
+                    return clone.textContent.trim();
+                });
+                
+                // Join the schedules
+                scheduleValue = scheduleTexts.join(', ');
+                console.log('Recovered schedule from display tags:', scheduleValue);
+            } 
+            // If no tags but also no "No schedule set" text, check direct text content
+            else if (!scheduleDisplay.querySelector('.text-muted') && 
+                    scheduleDisplay.textContent.trim() !== 'No schedule set' &&
+                    scheduleDisplay.textContent.trim() !== '') {
+                scheduleValue = scheduleDisplay.textContent.trim();
+                console.log('Recovered schedule from display text:', scheduleValue);
             }
         }
         
-        // Re-get the schedule after recovery attempt
-        const finalScheduleValue = scheduleInput ? scheduleInput.value : '';
-        if (!finalScheduleValue) {
+        // If we still don't have a schedule, check the input as a backup
+        if (!scheduleValue) {
+            const scheduleInput = document.getElementById('schedule');
+            if (scheduleInput && scheduleInput.value) {
+                scheduleValue = scheduleInput.value;
+                console.log('Using schedule from input field:', scheduleValue);
+            }
+        }
+        
+        // If we still have no schedule, alert user
+        if (!scheduleValue) {
             alert('Please add at least one schedule time slot before saving.');
             return;
         }
+        
+        // Update the form data with our recovered schedule
+        formData.set('schedule', scheduleValue);
+        
+        // Also update the schedule input for consistency
+        const scheduleInput = document.getElementById('schedule');
+        if (scheduleInput) {
+            scheduleInput.value = scheduleValue;
+        }
+        
+        console.log('Final schedule value being submitted:', scheduleValue);
         
         const classData = {
             classCode: formData.get('classCode'),
             description: formData.get('description'),
             roomNumber: formData.get('roomNumber'),
-            schedule: finalScheduleValue, // Always use the direct value
+            schedule: scheduleValue, // Use the recovered schedule value
             instructorId: parseInt(formData.get('instructorId'))
         };
         
