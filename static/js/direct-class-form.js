@@ -32,6 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
  * Handle the add time button click
  */
 function handleAddTimeClick() {
+    // Prevent multiple click events
+    if (window.isProcessingTimeSlot) {
+        console.log('Already processing time slot, ignoring duplicate click');
+        return;
+    }
+    
+    window.isProcessingTimeSlot = true;
+    setTimeout(() => { window.isProcessingTimeSlot = false; }, 500);
+    
     const startTime = document.getElementById('startTime').value;
     const endTime = document.getElementById('endTime').value;
     const selectedDays = getSelectedDays();
@@ -39,17 +48,20 @@ function handleAddTimeClick() {
     // Validation
     if (!startTime || !endTime) {
         alert('Please select both start and end times');
+        window.isProcessingTimeSlot = false;
         return;
     }
     
     if (selectedDays.length === 0) {
         alert('Please select at least one day');
+        window.isProcessingTimeSlot = false;
         return;
     }
     
     // Validate time range
     if (startTime >= endTime) {
         alert('End time must be after start time');
+        window.isProcessingTimeSlot = false;
         return;
     }
     
@@ -67,26 +79,32 @@ function handleAddTimeClick() {
     // Add the time slot to the schedule
     if (typeof addTimeSlot === 'function') {
         addTimeSlot(slot);
-        // Show success notification
-        showNotification('Time slot added successfully!');
     } else {
         // Fallback if the main function isn't available
         addTimeSlotFallback(slot);
-        // Show success notification
-        showNotification('Time slot added successfully!');
     }
+    
+    // Show success notification
+    showNotification('Time slot added successfully!');
     
     // Update the hidden schedule field with the new format
     const scheduleField = document.getElementById('schedule');
     if (scheduleField) {
-        // Set a default value for the schedule even if there are no slots
+        // Make sure the schedule field has the current values
+        updateScheduleField();
+        
+        // If still empty (no slots added), create a default value
         if (!scheduleField.value) {
             const currentDays = selectedDays.join('');
             scheduleField.value = `${currentDays} ${formatTime(startTime)} - ${formatTime(endTime)}`;
+            console.log('Created default schedule value:', scheduleField.value);
         }
     }
     
-    // Reset inputs but keep the times for convenience
+    // Reset the processing flag
+    window.isProcessingTimeSlot = false;
+    
+    // Keep the times for convenience, but reset the days
     resetSelectedDays();
 }
 
@@ -183,7 +201,7 @@ function updateScheduleField() {
     const slots = scheduleDisplay.querySelectorAll('.schedule-slot');
     
     if (slots.length === 0) {
-        scheduleDisplay.innerHTML = '<span class="text-muted">No schedule set</span>';
+        scheduleDisplay.innerHTML = '<span class="text-muted">No time slots added</span>';
         scheduleField.value = '';
         return;
     }

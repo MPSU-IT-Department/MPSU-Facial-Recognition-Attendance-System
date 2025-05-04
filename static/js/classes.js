@@ -1042,7 +1042,17 @@ function saveClass() {
             scheduleInput.value = schedule;
             console.log('Created schedule from current inputs:', schedule);
         } else {
-            alert('Please set a schedule by adding at least one time slot');
+            alert('Please set a schedule by clicking the Add button after selecting days and times');
+            // Focus on the Add button to guide the user
+            const addTimeBtn = document.getElementById('addTimeBtn');
+            if (addTimeBtn) {
+                addTimeBtn.focus();
+                // Add a visual highlight to the Add button
+                addTimeBtn.style.boxShadow = '0 0 0 3px rgba(23, 206, 154, 0.5)';
+                setTimeout(() => {
+                    addTimeBtn.style.boxShadow = '';
+                }, 2000);
+            }
             return;
         }
     }
