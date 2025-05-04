@@ -4,7 +4,7 @@ import datetime
 import json
 
 from app import db, app
-from models import Class, User, Student, Enrollment
+from models import Class, User, Student, Enrollment, FaceEncoding
 from forms import ClassForm, EnrollmentForm
 
 classes_bp = Blueprint('classes', __name__, url_prefix='/classes')
@@ -96,7 +96,12 @@ def get_classes():
         print("Fetching classes from database...")
         print(f"User: {current_user.username}, Role: {current_user.role}")
         
-        classes = Class.query.all()
+        # If instructor, only show their classes
+        if current_user.role == 'instructor':
+            classes = Class.query.filter_by(instructor_id=current_user.id).all()
+        else:
+            classes = Class.query.all()
+            
         print(f"Found {len(classes)} classes")
         
         # Convert to dictionary
@@ -139,6 +144,57 @@ def get_classes():
         print(f"Error in get_classes API: {str(e)}")
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
+@classes_bp.route('/api/<int:class_id>', methods=['GET'])
+@login_required
+def get_class(class_id):
+    try:
+        # Get the class by ID
+        cls = Class.query.get(class_id)
+        
+        if not cls:
+            return jsonify({'success': False, 'message': 'Class not found'}), 404
+        
+        # If instructor, check if they have access to this class
+        if current_user.role == 'instructor' and cls.instructor_id != current_user.id:
+            return jsonify({'success': False, 'message': 'You do not have permission to view this class'}), 403
+            
+        # Get the instructor name
+        instructor = User.query.get(cls.instructor_id)
+        instructor_name = f"{instructor.first_name} {instructor.last_name}" if instructor else "Unknown"
+        
+        # Count enrolled students
+        enrolled_count = Enrollment.query.filter_by(class_id=cls.id).count()
+        
+        # Get student details
+        enrollments = Enrollment.query.filter_by(class_id=cls.id).all()
+        students = []
+        
+        for enrollment in enrollments:
+            student = Student.query.get(enrollment.student_id)
+            if student:
+                students.append({
+                    'id': student.id,
+                    'name': f"{student.first_name} {student.last_name}"
+                })
+        
+        # Return class details
+        return jsonify({
+            'id': cls.id,
+            'classCode': cls.class_code,
+            'description': cls.description,
+            'roomNumber': cls.room_number,
+            'schedule': cls.schedule,
+            'instructorId': cls.instructor_id,
+            'instructorName': instructor_name,
+            'enrolledCount': enrolled_count,
+            'students': students
+        })
+    except Exception as e:
+        import traceback
+        print(f"Error getting class {class_id}: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @classes_bp.route('/api/create', methods=['POST'])
 @login_required
@@ -292,6 +348,10 @@ def get_class_students(class_id):
     if not cls:
         return jsonify({'success': False, 'message': 'Class not found'}), 404
     
+    # If instructor, check if they have access to this class
+    if current_user.role == 'instructor' and cls.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You do not have permission to view this class'}), 403
+    
     # Get all students enrolled in this class
     enrollments = Enrollment.query.filter_by(class_id=class_id).all()
     
@@ -299,6 +359,10 @@ def get_class_students(class_id):
     for enrollment in enrollments:
         student = Student.query.get(enrollment.student_id)
         if student:
+            # Get profile image if any
+            face_encoding = FaceEncoding.query.filter_by(student_id=student.id).first()
+            profile_image = face_encoding.image_path if face_encoding and face_encoding.image_path else None
+            
             student_list.append({
                 'id': student.id,
                 'firstName': student.first_name,
@@ -307,7 +371,8 @@ def get_class_students(class_id):
                 'phone': student.phone,
                 'email': student.email or '',
                 'enrollmentId': enrollment.id,
-                'enrollmentDate': enrollment.enrolled_date.strftime('%Y-%m-%d')
+                'enrollmentDate': enrollment.enrolled_date.strftime('%Y-%m-%d'),
+                'profileImage': profile_image
             })
     
     return jsonify(student_list)
@@ -323,6 +388,10 @@ def enroll_student(class_id):
     cls = Class.query.get(class_id)
     if not cls:
         return jsonify({'success': False, 'message': 'Class not found'}), 404
+    
+    # Check if instructor is assigned to this class
+    if cls.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You can only enroll students in classes you teach'}), 403
     
     data = request.get_json()
     
@@ -353,6 +422,11 @@ def enroll_student(class_id):
     try:
         db.session.add(enrollment)
         db.session.commit()
+        
+        # Get profile image if any
+        face_encoding = FaceEncoding.query.filter_by(student_id=student.id).first()
+        profile_image = face_encoding.image_path if face_encoding and face_encoding.image_path else None
+        
         return jsonify({
             'success': True, 
             'message': 'Student enrolled successfully',
@@ -364,7 +438,8 @@ def enroll_student(class_id):
                 'phone': student.phone,
                 'email': student.email or '',
                 'enrollmentId': enrollment.id,
-                'enrollmentDate': enrollment.enrolled_date.strftime('%Y-%m-%d')
+                'enrollmentDate': enrollment.enrolled_date.strftime('%Y-%m-%d'),
+                'profileImage': profile_image
             }
         })
     except Exception as e:
@@ -382,6 +457,10 @@ def unenroll_student_by_enrollment(class_id, enrollment_id):
     cls = Class.query.get(class_id)
     if not cls:
         return jsonify({'success': False, 'message': 'Class not found'}), 404
+    
+    # Check if the instructor is assigned to this class
+    if cls.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You can only unenroll students from classes you teach'}), 403
     
     # Check if enrollment exists
     enrollment = Enrollment.query.get(enrollment_id)
@@ -406,7 +485,8 @@ def unenroll_student_by_enrollment(class_id, enrollment_id):
         db.session.commit()
         return jsonify({
             'success': True, 
-            'message': f'Student {student_info["firstName"]} {student_info["lastName"]} unenrolled successfully'
+            'message': f'Student {student_info["firstName"]} {student_info["lastName"]} unenrolled successfully',
+            'student': student_info
         })
     except Exception as e:
         db.session.rollback()
@@ -419,6 +499,15 @@ def unenroll_student_by_id(class_id, student_id):
     if current_user.role != 'instructor':
         return jsonify({'success': False, 'message': 'Only instructors can unenroll students'}), 403
     
+    # Check if class exists
+    cls = Class.query.get(class_id)
+    if not cls:
+        return jsonify({'success': False, 'message': 'Class not found'}), 404
+    
+    # Check if the instructor is assigned to this class
+    if cls.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You can only unenroll students from classes you teach'}), 403
+    
     # Find the enrollment
     enrollment = Enrollment.query.filter_by(
         class_id=class_id, 
@@ -428,10 +517,145 @@ def unenroll_student_by_id(class_id, student_id):
     if not enrollment:
         return jsonify({'success': False, 'message': 'Student not enrolled in this class'}), 404
     
+    # Get student info before deletion for response
+    student = Student.query.get(enrollment.student_id)
+    student_info = {
+        'id': student.id,
+        'firstName': student.first_name,
+        'lastName': student.last_name
+    }
+    
     try:
         db.session.delete(enrollment)
         db.session.commit()
-        return jsonify({'success': True, 'message': 'Student unenrolled successfully'})
+        return jsonify({
+            'success': True, 
+            'message': f'Student {student_info["firstName"]} {student_info["lastName"]} unenrolled successfully',
+            'student': student_info
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@classes_bp.route('/api/enroll', methods=['POST'])
+@login_required
+def enroll_student_general():
+    """Generic enrollment endpoint that doesn't require class ID in the URL path"""
+    # Restrict access to instructors and admins
+    if current_user.role not in ['instructor', 'admin']:
+        return jsonify({'success': False, 'message': 'Only instructors and administrators can enroll students'}), 403
+    
+    data = request.get_json()
+    
+    if not data or not all(key in data for key in ['studentId', 'classId']):
+        return jsonify({'success': False, 'message': 'Missing required enrollment data'}), 400
+    
+    # Check if class exists
+    cls = Class.query.get(data['classId'])
+    if not cls:
+        return jsonify({'success': False, 'message': 'Class not found'}), 404
+    
+    # If instructor, check if they teach this class
+    if current_user.role == 'instructor' and cls.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You can only enroll students in classes you teach'}), 403
+    
+    # Check if student exists
+    student = Student.query.get(data['studentId'])
+    if not student:
+        return jsonify({'success': False, 'message': 'Student not found'}), 404
+    
+    # Check if student is already enrolled
+    existing_enrollment = Enrollment.query.filter_by(
+        class_id=data['classId'], 
+        student_id=data['studentId']
+    ).first()
+    
+    if existing_enrollment:
+        return jsonify({'success': False, 'message': 'Student already enrolled in this class'}), 400
+    
+    # Create new enrollment
+    enrollment = Enrollment(
+        student_id=data['studentId'],
+        class_id=data['classId'],
+        enrolled_date=datetime.datetime.utcnow()
+    )
+    
+    try:
+        db.session.add(enrollment)
+        db.session.commit()
+        
+        # Get profile image if any
+        face_encoding = FaceEncoding.query.filter_by(student_id=student.id).first()
+        profile_image = face_encoding.image_path if face_encoding and face_encoding.image_path else None
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Student enrolled successfully',
+            'student': {
+                'id': student.id,
+                'firstName': student.first_name,
+                'lastName': student.last_name,
+                'yearLevel': student.year_level,
+                'phone': student.phone,
+                'email': student.email or '',
+                'enrollmentId': enrollment.id,
+                'enrollmentDate': enrollment.enrolled_date.strftime('%Y-%m-%d'),
+                'profileImage': profile_image
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@classes_bp.route('/api/unenroll', methods=['POST'])
+@login_required
+def unenroll_student_general():
+    """Generic unenrollment endpoint that doesn't require class ID in the URL path"""
+    # Restrict access to instructors and admins
+    if current_user.role not in ['instructor', 'admin']:
+        return jsonify({'success': False, 'message': 'Only instructors and administrators can unenroll students'}), 403
+    
+    data = request.get_json()
+    
+    if not data or not all(key in data for key in ['studentId', 'classId']):
+        return jsonify({'success': False, 'message': 'Missing required enrollment data'}), 400
+    
+    # Check if class exists
+    cls = Class.query.get(data['classId'])
+    if not cls:
+        return jsonify({'success': False, 'message': 'Class not found'}), 404
+    
+    # If instructor, check if they teach this class
+    if current_user.role == 'instructor' and cls.instructor_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You can only unenroll students from classes you teach'}), 403
+    
+    # Find the enrollment
+    enrollment = Enrollment.query.filter_by(
+        class_id=data['classId'], 
+        student_id=data['studentId']
+    ).first()
+    
+    if not enrollment:
+        return jsonify({'success': False, 'message': 'Student not enrolled in this class'}), 404
+    
+    try:
+        # Save student info before deletion for response
+        student = Student.query.get(enrollment.student_id)
+        student_info = {
+            'id': student.id,
+            'firstName': student.first_name,
+            'lastName': student.last_name
+        }
+        
+        # Delete enrollment (cascade will delete attendance records)
+        db.session.delete(enrollment)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Student {student_info["firstName"]} {student_info["lastName"]} unenrolled successfully',
+            'student': student_info
+        })
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
