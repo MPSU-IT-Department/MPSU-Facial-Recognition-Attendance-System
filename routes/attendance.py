@@ -5,19 +5,33 @@ from datetime import date, timedelta
 import calendar
 
 from app import db
-from models import Class, Student, Enrollment, AttendanceRecord
+from models import Class, Student, Enrollment, AttendanceRecord, FaceEncoding
 
 attendance_bp = Blueprint('attendance', __name__, url_prefix='/attendance')
 
 @attendance_bp.route('/manage', methods=['GET'])
 @login_required
 def manage():
-    return render_template('attendance/manage.html')
+    # Get selected class_id from query params if provided
+    class_id = request.args.get('class_id')
+    
+    # If instructor, filter to show only their classes
+    if current_user.role == 'instructor':
+        classes = Class.query.filter_by(instructor_id=current_user.id).all()
+    else:
+        classes = Class.query.all()
+    
+    return render_template('attendance/manage.html', classes=classes, selected_class_id=class_id)
 
 @attendance_bp.route('/api/classes', methods=['GET'])
 @login_required
 def get_classes_with_attendance():
-    classes = Class.query.all()
+    # If instructor, only show their classes
+    if current_user.role == 'instructor':
+        classes = Class.query.filter_by(instructor_id=current_user.id).all()
+    else:
+        classes = Class.query.all()
+        
     today = date.today()
     
     # Convert to dictionary
@@ -38,6 +52,43 @@ def get_classes_with_attendance():
             'classCode': cls.class_code,
             'description': cls.description,
             'schedule': cls.schedule,
+            'roomNumber': cls.room_number,
+            'instructorId': cls.instructor_id,
+            'enrolledCount': enrolled_count,
+            'presentCount': present_count,
+            'date': today.strftime('%B %d %Y')
+        })
+    
+    return jsonify(class_list)
+
+@attendance_bp.route('/api/my-classes-today', methods=['GET'])
+@login_required
+def get_my_classes_today():
+    """Get classes taught by the current instructor with attendance for today."""
+    if current_user.role != 'instructor':
+        return jsonify([])
+        
+    classes = Class.query.filter_by(instructor_id=current_user.id).all()
+    today = date.today()
+    
+    class_list = []
+    for cls in classes:
+        # Count enrolled students
+        enrolled_count = Enrollment.query.filter_by(class_id=cls.id).count()
+        
+        # Count students present today
+        present_count = AttendanceRecord.query.filter_by(
+            class_id=cls.id,
+            date=today,
+            status='Present'
+        ).count()
+        
+        class_list.append({
+            'id': cls.id,
+            'classCode': cls.class_code,
+            'description': cls.description,
+            'schedule': cls.schedule,
+            'roomNumber': cls.room_number,
             'enrolledCount': enrolled_count,
             'presentCount': present_count,
             'date': today.strftime('%B %d %Y')

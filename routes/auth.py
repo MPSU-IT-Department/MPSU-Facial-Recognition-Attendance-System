@@ -16,13 +16,21 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 @auth_bp.route('/', methods=['GET'])
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('students.enroll'))
+        # Redirect based on role
+        if current_user.role == 'admin':
+            return redirect(url_for('students.enroll'))
+        elif current_user.role == 'instructor':
+            return redirect(url_for('instructors.dashboard'))
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('students.enroll'))
+        # Redirect based on role
+        if current_user.role == 'admin':
+            return redirect(url_for('students.enroll'))
+        elif current_user.role == 'instructor':
+            return redirect(url_for('instructors.dashboard'))
     
     form = LoginForm()
     
@@ -37,9 +45,20 @@ def login():
             session['user_name'] = f"{user.first_name} {user.last_name}"
             session['user_role'] = user.role
             
-            # Redirect to the page user wanted to access or default to students.enroll
+            # Get the next page from query params
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('students.enroll'))
+            
+            # If next page is provided, go there
+            if next_page:
+                return redirect(next_page)
+                
+            # Otherwise, redirect based on role
+            if user.role == 'admin':
+                return redirect(url_for('students.enroll'))
+            elif user.role == 'instructor':
+                return redirect(url_for('instructors.dashboard'))
+            else:
+                return redirect(url_for('students.enroll'))
         else:
             flash('Invalid username or password', 'danger')
     

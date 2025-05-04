@@ -20,6 +20,28 @@ def schedule():
     
     return render_template('classes/schedule.html', form=form)
 
+@classes_bp.route('/view/<int:class_id>', methods=['GET'])
+@login_required
+def view_class(class_id):
+    # Check if class exists
+    cls = Class.query.get_or_404(class_id)
+    
+    # If instructor, check if they have access to this class
+    if current_user.role == 'instructor' and cls.instructor_id != current_user.id:
+        flash('You do not have permission to view this class.', 'danger')
+        return redirect(url_for('instructors.dashboard'))
+    
+    # Create enrollment form for adding students
+    form = EnrollmentForm()
+    form.class_id.data = class_id
+    
+    # Add student choices to the form
+    students = Student.query.all()
+    student_choices = [(s.id, f"{s.first_name} {s.last_name} ({s.id})") for s in students]
+    form.student_id.choices = student_choices
+    
+    return render_template('classes/view.html', form=form, class_id=class_id)
+
 @classes_bp.route('/debug-info', methods=['GET'])
 @login_required
 def debug_info():
