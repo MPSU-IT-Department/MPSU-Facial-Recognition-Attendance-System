@@ -270,8 +270,40 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const courseData = JSON.parse(selectedValue);
-            document.getElementById('classCode').value = courseData.code;
+            
+            // Set the hidden description field
             document.getElementById('description').value = courseData.description;
+            
+            // Generate a suggestion for class code if it's not already set or is the default course code
+            const classCodeInput = document.getElementById('classCode');
+            const currentClassCode = classCodeInput.value;
+            
+            // Only suggest a code if field is empty or matches previous course code
+            if (!currentClassCode || currentClassCode === state.lastSelectedCourseCode) {
+                // If editing, don't change the class code unless it matches the previous suggestion
+                if (!state.isEditingClass) {
+                    // Generate a suggested class code
+                    const existingCodes = state.classes
+                        .filter(c => c.class_code.startsWith(courseData.code))
+                        .map(c => c.class_code);
+                    
+                    if (existingCodes.length === 0) {
+                        // First section with this course code
+                        classCodeInput.value = courseData.code;
+                    } else {
+                        // Find the next available section letter (A, B, C, etc.)
+                        let sectionLetter = 'A';
+                        while (existingCodes.includes(`${courseData.code}-${sectionLetter}`)) {
+                            sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
+                        }
+                        classCodeInput.value = `${courseData.code}-${sectionLetter}`;
+                    }
+                }
+            }
+            
+            // Store the last selected course code for comparison
+            state.lastSelectedCourseCode = courseData.code;
+            
         } catch (error) {
             console.error('Error parsing course data:', error);
         }

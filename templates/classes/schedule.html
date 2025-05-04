@@ -168,7 +168,11 @@
                             <!-- Courses will be populated by JavaScript -->
                         </select>
                     </div>
-                    <input type="hidden" id="classCode" name="classCode">
+                    <div class="form-group">
+                        <label for="classCode">Class Code <small class="text-muted">(Must be unique)</small></label>
+                        <input type="text" class="form-control" id="classCode" name="classCode" required maxlength="20">
+                        <small class="form-text text-muted">Use a unique identifier for this class section (e.g., ITP321-A)</small>
+                    </div>
                     <input type="hidden" id="description" name="description">
                     <div class="form-group">
                         <label for="roomNumber">Room Number</label>
