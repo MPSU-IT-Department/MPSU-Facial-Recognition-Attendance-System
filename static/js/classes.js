@@ -710,11 +710,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = e.target;
         const formData = new FormData(form);
         
+        // Get the schedule value directly from the hidden input as a last resort
+        const scheduleValue = document.getElementById('schedule').value;
+        console.log('Form submission - schedule value:', scheduleValue);
+        
         const classData = {
             classCode: formData.get('classCode'),
             description: formData.get('description'),
             roomNumber: formData.get('roomNumber'),
-            schedule: formData.get('schedule'),
+            schedule: scheduleValue || formData.get('schedule'),
             instructorId: parseInt(formData.get('instructorId'))
         };
         

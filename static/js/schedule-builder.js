@@ -196,7 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Set hidden input value
-        scheduleInput.value = formattedSchedule.join(', ');
+        const scheduleValue = formattedSchedule.join(', ');
+        scheduleInput.value = scheduleValue;
+        console.log('Setting schedule input value:', scheduleValue);
+        
+        // Trigger a change event on the input to ensure form data is updated
+        const event = new Event('change', { bubbles: true });
+        scheduleInput.dispatchEvent(event);
     }
     
     // Remove a schedule item

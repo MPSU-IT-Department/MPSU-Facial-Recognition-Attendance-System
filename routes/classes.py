@@ -66,15 +66,22 @@ def get_classes():
 @login_required
 def create_class():
     data = request.get_json()
+    print(f"Received class creation data: {data}")
     
     # Validate data
     if not data or not all(key in data for key in ['classCode', 'description', 'roomNumber', 'schedule', 'instructorId']):
-        return jsonify({'success': False, 'message': 'Missing required class data'}), 400
+        missing_keys = [key for key in ['classCode', 'description', 'roomNumber', 'schedule', 'instructorId'] if key not in data]
+        print(f"Missing required class data: {missing_keys}")
+        return jsonify({'success': False, 'message': f'Missing required class data: {", ".join(missing_keys)}'}), 400
     
     # Check if class code already exists
     existing_class = Class.query.filter_by(class_code=data['classCode']).first()
     if existing_class:
+        print(f"Class code already exists: {data['classCode']}")
         return jsonify({'success': False, 'message': 'Class code already exists'}), 400
+    
+    # Log schedule value
+    print(f"Schedule value for new class: '{data['schedule']}'")
     
     # Create new class
     new_class = Class(
@@ -118,21 +125,40 @@ def update_class(class_id):
     cls = Class.query.get(class_id)
     
     if not cls:
+        print(f"Class not found with ID: {class_id}")
         return jsonify({'success': False, 'message': 'Class not found'}), 404
     
     data = request.get_json()
+    print(f"Received update data for class {class_id}: {data}")
+    
+    # Get current schedule before updating
+    current_schedule = cls.schedule if cls.schedule else "None"
+    print(f"Current schedule before update: '{current_schedule}'")
     
     # Update class info
     if 'classCode' in data and data['classCode'] != cls.class_code:
         # Check if new class code already exists
         existing_class = Class.query.filter_by(class_code=data['classCode']).first()
         if existing_class and existing_class.id != class_id:
+            print(f"Class code already exists: {data['classCode']}")
             return jsonify({'success': False, 'message': 'Class code already exists'}), 400
+        print(f"Updating class code from {cls.class_code} to {data['classCode']}")
         cls.class_code = data['classCode']
     
+    if 'description' in data:
+        print(f"Updating description from '{cls.description}' to '{data['description']}'")
     cls.description = data.get('description', cls.description)
+    
+    if 'roomNumber' in data:
+        print(f"Updating room number from '{cls.room_number}' to '{data['roomNumber']}'")
     cls.room_number = data.get('roomNumber', cls.room_number)
+    
+    if 'schedule' in data:
+        print(f"Updating schedule from '{cls.schedule}' to '{data['schedule']}'")
     cls.schedule = data.get('schedule', cls.schedule)
+    
+    if 'instructorId' in data:
+        print(f"Updating instructor ID from {cls.instructor_id} to {data['instructorId']}")
     cls.instructor_id = data.get('instructorId', cls.instructor_id)
     
     try:
