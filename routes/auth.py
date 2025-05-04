@@ -45,6 +45,23 @@ def login():
     
     return render_template('login.html', form=form)
 
+@auth_bp.route('/check-auth', methods=['GET'])
+@login_required
+def check_auth():
+    """
+    Endpoint to check if the user is authenticated.
+    Used by frontend to verify session validity.
+    """
+    return jsonify({
+        'authenticated': True,
+        'user': {
+            'id': current_user.id,
+            'username': current_user.username,
+            'role': current_user.role,
+            'name': f"{current_user.first_name} {current_user.last_name}"
+        }
+    })
+
 @auth_bp.route('/logout', methods=['GET'])
 @login_required
 def logout():

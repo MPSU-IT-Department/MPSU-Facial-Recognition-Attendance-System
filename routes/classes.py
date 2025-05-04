@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify, flash
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify, flash, current_app
 from flask_login import login_required, current_user
 import datetime
+import json
 
-from app import db
+from app import db, app
 from models import Class, User, Student, Enrollment
 from forms import ClassForm, EnrollmentForm
 
@@ -19,11 +20,60 @@ def schedule():
     
     return render_template('classes/schedule.html', form=form)
 
+@classes_bp.route('/debug-info', methods=['GET'])
+@login_required
+def debug_info():
+    """Debug endpoint to return information about the system state."""
+    try:
+        from flask import session as flask_session
+        import sys
+        import platform
+        import flask
+        
+        # Get database info
+        db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', 'Not configured')
+        db_uri_safe = db_uri.split('@')[0] + '@' + db_uri.split('@')[1].split('/')[0] + '/****' if '@' in db_uri else db_uri
+        
+        user_info = {
+            'id': current_user.id if current_user else None,
+            'username': current_user.username if current_user else None,
+            'role': current_user.role if current_user else None,
+            'authenticated': current_user.is_authenticated if current_user else False
+        }
+        
+        # Count records in database
+        class_count = Class.query.count()
+        user_count = User.query.count()
+        student_count = Student.query.count()
+        enrollment_count = Enrollment.query.count()
+        
+        debug_info = {
+            'timestamp': datetime.datetime.utcnow().isoformat(),
+            'python_version': sys.version,
+            'platform': platform.platform(),
+            'flask_version': flask.__version__,
+            'session_keys': list(flask_session.keys()),
+            'current_user': user_info,
+            'database': {
+                'uri': db_uri_safe,
+                'class_count': class_count,
+                'user_count': user_count,
+                'student_count': student_count,
+                'enrollment_count': enrollment_count
+            }
+        }
+        
+        return jsonify(debug_info)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @classes_bp.route('/api/list', methods=['GET'])
 @login_required
 def get_classes():
     try:
         print("Fetching classes from database...")
+        print(f"User: {current_user.username}, Role: {current_user.role}")
+        
         classes = Class.query.all()
         print(f"Found {len(classes)} classes")
         
@@ -42,7 +92,7 @@ def get_classes():
                 # Count enrolled students
                 enrolled_count = Enrollment.query.filter_by(class_id=cls.id).count()
                 
-                class_list.append({
+                class_data = {
                     'id': cls.id,
                     'classCode': cls.class_code,
                     'description': cls.description,
@@ -51,7 +101,11 @@ def get_classes():
                     'instructorId': cls.instructor_id,
                     'instructorName': instructor_name,
                     'enrolledCount': enrolled_count
-                })
+                }
+                
+                class_list.append(class_data)
+                print(f"Processed class: {cls.class_code}")
+                
             except Exception as e:
                 print(f"Error processing class {cls.id}: {str(e)}")
                 # Continue with the next class rather than failing completely
@@ -59,7 +113,9 @@ def get_classes():
         print(f"Returning {len(class_list)} classes in response")
         return jsonify(class_list)
     except Exception as e:
+        import traceback
         print(f"Error in get_classes API: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 @classes_bp.route('/api/create', methods=['POST'])
