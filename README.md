@@ -16,7 +16,7 @@ A Flask-based server for a facial recognition attendance system, managing user a
 - PostgreSQL 13.21 -  Database
 - Flask - lightweight WSGI web application framework
 
-### System Features
+# System Features
 ## Admin
 #### Login Page
  
