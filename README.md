@@ -3,9 +3,9 @@
 ![Login Page](images/login.jpg)
 
 <p align="center">
-A Flask-based server for a facial recognition attendance system, managing user authentication, facial embeddings, attendance tracking, and API services.
+A Flask-based server for a facial recognition attendance system, managing user authentication, facial embeddings, attendance tracking, and API services.</p>
 
-\n
+<br></br>
 
 ## User Manual
 
