@@ -83,7 +83,6 @@ The Settings Page enables an administrator to manage personal and system setting
 <hr>
 
 <br></br>
-<br></br>
 
 ---
 
