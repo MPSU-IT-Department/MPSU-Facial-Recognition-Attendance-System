@@ -25,26 +25,26 @@ For a user to login, they type their username and password. The system checks th
  
 The administrator interface is a web-based dashboard for managing the MPSU Attendance Management System. It provides administrators with comprehensive tools to oversee students, instructors, courses, classes, and attendance tracking.
 
-#### Manage Student (Admin)
+#### Manage Student
  
 The Manage Students section lets the administrator handle student records from start to finish. They can add new students with basic details, view all student records with search options, update student information when needed and delete students as long as they are not enrolled in a class.
 
-#### Enrolling a student (Admininstrator)
+#### Enrolling a student
  
 The Enroll Student function lets an administrator add a new student to the system. The administrator fills out a form with the student’s first name, middle name, last name, student ID and year level. Additionally, the student ID should be entered manually in the correct format. Once submitted, the system creates the student record and shows a success notification. After enrollment, admins can set up facial recognition for the student by capturing photos with the webcam. Once the photos are added, the administrator must go to the settings and extract the facial embeddings.
 
-#### Editing student details (Administrator)
+#### Editing student details 
  The Edit Student function lets admins update a student’s information. An administrator selects a student from the list and open the edit form, which shows the current details. They can change the first name, middle name, last name and year level. The student ID cannot be changed. After making changes, clicking Update Student saves the information to the database. The system validates the input and shows a success notification when the update is complete. If there are errors, messages appear so the administrator can correct them. This ensures student records stay accurate and consistent across the system.
 
-#### Deleting a student (Administrator)
+#### Deleting a student 
  
 The Delete Student function allows the administrator to remove a student from the system. The administrator selects the student from the list and click the delete button, then confirm the action in a popup. The system first checks if the student is enrolled in any classes. If they are, deletion is blocked and an error message appears. If allowed, the student’s record is removed from the database, along with their face images, face recognition data, attendance records, and enrollment links. A success notification appears, and the student list updates immediately. Deletion is permanent and cannot be undone.
 
-#### Capturing Students Face (Administrator)
+#### Capturing Students Face 
  
 The Capturing Face function lets the administrator set up students for facial recognition attendance. The administrator selects a student and opens the camera modal, which shows a live camera feed. They position the student’s face in view with good lighting and take multiple photos from different angles and expressions. After capturing 3-5 photos, the administrator clicks Upload All. The system saves the images securely, prepares the face data for recognition, and updates the student’s face status to “Captured".
 
-#### View Photos (Admin)
+#### View Photos 
  
 The View Photos function enables the administrator to see all facial recognition photos for a student. The administrator selects a student and opens the photo viewer modal, which shows all uploaded photos in a grid and the option to delete a photo if needed.
 
@@ -80,7 +80,7 @@ The Class Attendance function lets administrators monitor and manage instructor 
  
 The Settings Page enables an administrator to manage personal and system settings. Only the administrator can change and update their own profile information, change passwords, and upload a profile picture. Admins have additional controls, which are adding room numbers, as well as resetting attendance and classes but also changing the semester and school year if they had reset both attendance and classes. The page also allows managing face recognition data by extracting embeddings. Settings use modals for confirmations, real-time validation, and progress updates. An administrator can export archives before resetting data. The page ensures secure updates, role-based access, and smooth system configuration while keeping user experience simple and interactive.
 
-#### Instructor Interface
+<h2>Instructor Interface<h2>
  
 The Instructor Interface enables instructors to manage attendance, classes and student information. In Attendance, instructors can select a class and view students time in and time out but also their status which are present, absent and late along with the ability to export the attendance of the selected class. In Classes, they can view their assigned schedules and register/unregister a student in their assigned class. In Students, instructors can see the overall list of students that have been registered in their classes and they can also capture a student’s face if they aren’t registered yet and they can view if the captured photos of the students and delete a photo if necessary.
 
