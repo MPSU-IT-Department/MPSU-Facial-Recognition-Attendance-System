@@ -16,8 +16,8 @@ A Flask-based server for a facial recognition attendance system, managing user a
 - PostgreSQL 13.21 -  Database
 - Flask - lightweight WSGI web application framework
 
-### Facial Recognition Attendance System Interface and features
-## Admin Interface
+### System Features
+## Admin
 #### Login Page
  
 For a user to login, they type their username and password. The system checks these details in the database and makes sure the password is correct. If the login is successful, Flask-Login creates a session and saves the user information. After that the system sends the user to the correct page. The administrator goes to the student enrollment page while instructors go to the attendance page.
