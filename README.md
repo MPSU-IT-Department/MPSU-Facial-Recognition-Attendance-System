@@ -82,7 +82,7 @@ The Settings Page enables an administrator to manage personal and system setting
 
 ## Instructor Interface
 
-![Instructor Interface](images/Instructor Interface.jpg)
+![Instructor Interface](images/Instructor Interface.png)
  
 The Instructor Interface enables instructors to manage attendance, classes and student information. In Attendance, instructors can select a class and view students time in and time out but also their status which are present, absent and late along with the ability to export the attendance of the selected class. In Classes, they can view their assigned schedules and register/unregister a student in their assigned class. In Students, instructors can see the overall list of students that have been registered in their classes and they can also capture a student’s face if they aren’t registered yet and they can view if the captured photos of the students and delete a photo if necessary.
 
