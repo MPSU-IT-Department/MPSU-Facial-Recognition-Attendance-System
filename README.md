@@ -18,10 +18,6 @@ A Flask-based server for a facial recognition attendance system, managing user a
 <br></br>
 # System Features
 
-#### Login Page
- 
-For a user to login, they type their username and password. The system checks these details in the database and makes sure the password is correct. If the login is successful, Flask-Login creates a session and saves the user information. After that the system sends the user to the correct page. The administrator goes to the student enrollment page while instructors go to the attendance page.
-
 ## Administrator Interface
  
 The administrator interface is a web-based dashboard for managing the MPSU Attendance Management System. It provides administrators with comprehensive tools to oversee students, instructors, courses, classes, and attendance tracking.
