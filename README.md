@@ -82,6 +82,10 @@ The Class Attendance function lets administrators monitor and manage instructor 
 The Settings Page enables an administrator to manage personal and system settings. Only the administrator can change and update their own profile information, change passwords, and upload a profile picture. Admins have additional controls, which are adding room numbers, as well as resetting attendance and classes but also changing the semester and school year if they had reset both attendance and classes. The page also allows managing face recognition data by extracting embeddings. Settings use modals for confirmations, real-time validation, and progress updates. An administrator can export archives before resetting data. The page ensures secure updates, role-based access, and smooth system configuration while keeping user experience simple and interactive.
 <hr>
 
+<br></br>
+<br></br>
+
+
 ## Instructor Interface
 
 ![Instructor Interface](images/instructor.png)
