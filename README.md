@@ -15,7 +15,7 @@ A Flask-based server for a facial recognition attendance system, managing user a
 - Python 3.11.0 – Programming language used to create and run the system.
 - PostgreSQL 13.21 -  Database
 - Flask - lightweight WSGI web application framework
-
+<br></br>
 # System Features
 ## Admin
 #### Login Page
