@@ -4,7 +4,7 @@
 
 <p align="center">
 A Flask-based server for a facial recognition attendance system, managing user authentication, facial embeddings, attendance tracking, and API services.</p>
-
+<hr>
 <br></br>
 
 ## User Manual
