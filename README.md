@@ -184,9 +184,9 @@ flask db upgrade
 ### UPDATE:
 -for migration steps:
 On the first migration attempt we (after your venv activation) set the Flask app target and ran the upgrade:
-<br>
-$env:FLASK_APP="backend.app"
-flask db upgrade -d backend/migrations
+
+<strong>$env:FLASK_APP="backend.app"
+flask db upgrade -d backend/migrations</strong>
 
 That run hit the term_enum duplicate-type error. After updating the migration file to guard enum creation we reran:
 <br>
