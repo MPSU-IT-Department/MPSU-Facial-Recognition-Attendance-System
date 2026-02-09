@@ -10,7 +10,14 @@ class AttendanceRecord(db.Model):
     student_id = db.Column(db.String(20), db.ForeignKey('students.id'), nullable=False)
     class_session_id = db.Column(db.Integer, db.ForeignKey('class_sessions.id'), nullable=True)  # Made nullable for facial recognition
     date = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.Enum(AttendanceStatus), nullable=True)  # Made nullable for facial recognition
+    status = db.Column(
+        db.Enum(
+            AttendanceStatus,
+            name='attendancestatus',
+            values_callable=lambda enum: [status.value for status in enum],
+        ),
+        nullable=True,
+    )  # Store lowercase enum values to match DB type
     time_in = db.Column(db.DateTime)
     time_out = db.Column(db.DateTime)
     notes = db.Column(db.String(500))

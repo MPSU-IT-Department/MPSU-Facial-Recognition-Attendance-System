@@ -1,6 +1,7 @@
 from enum import Enum
 
-class AttendanceStatus(Enum):
+
+class AttendanceStatus(str, Enum):
     PRESENT = 'present'
     ABSENT = 'absent'
-    LATE = 'late' 
+    LATE = 'late'
