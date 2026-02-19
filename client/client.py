@@ -34,7 +34,9 @@ FACE_ENCODINGS_ENDPOINT = f'{SERVER_URL}/api/face-encodings'
 MPSU_LOGO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'MPSU.png'))
 CLASS_STATE_CACHE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cache', 'class_state.json'))
 WEEKDAY_CODES = ['M', 'T', 'W', 'Th', 'F', 'S', 'Su']
-DEFAULT_ROOM_OPTIONS = ['309', '310', '311']
+# Temporary kiosk policy: all class sessions run in a single fixed room.
+FIXED_ROOM_NUMBER = '310'
+DEFAULT_ROOM_OPTIONS = [FIXED_ROOM_NUMBER]
 ROOM_CACHE_TTL_SECONDS = 120
 DEFAULT_AUTO_TIMEOUT_MINUTES = 60
 TIME_RANGE_PATTERN = re.compile('(\\d{1,2}:\\d{2}\\s*(?:[AaPp][Mm])?)\\s*-\\s*(\\d{1,2}:\\d{2}\\s*(?:[AaPp][Mm])?)', re.IGNORECASE)
@@ -227,37 +229,9 @@ def class_start_sort_key(cls):
     return (0, minutes, class_code)
 
 def fetch_available_rooms(force_refresh=False):
-    """Fetch the list of available rooms from the backend, with simple caching."""
-    now = time.time()
-    cache_age = now - _ROOM_OPTIONS_CACHE['timestamp']
-    if not force_refresh and cache_age < ROOM_CACHE_TTL_SECONDS:
-        return _ROOM_OPTIONS_CACHE['rooms']
-    try:
-        response = requests.get(f'{SERVER_URL}/api/rooms', headers=HEADERS, verify=False, timeout=10)
-        if response.status_code == 200:
-            try:
-                data = response.json()
-            except ValueError:
-                data = {}
-            rooms = data.get('rooms') or []
-            cleaned = []
-            seen = set()
-            for entry in rooms:
-                text = str(entry).strip()
-                if not text:
-                    continue
-                lowered = text.lower()
-                if lowered in seen:
-                    continue
-                seen.add(lowered)
-                cleaned.append(text)
-            if cleaned:
-                _ROOM_OPTIONS_CACHE['rooms'] = cleaned
-                _ROOM_OPTIONS_CACHE['timestamp'] = now
-                return cleaned
-    except requests.exceptions.RequestException:
-        pass
-    _ROOM_OPTIONS_CACHE['timestamp'] = now
+    """Return the single fixed kiosk room."""
+    _ROOM_OPTIONS_CACHE['rooms'] = [FIXED_ROOM_NUMBER]
+    _ROOM_OPTIONS_CACHE['timestamp'] = time.time()
     return _ROOM_OPTIONS_CACHE['rooms']
 
 def fetch_active_sessions():
@@ -1305,7 +1279,7 @@ def determine_class_ui_state(cls, room_session_map):
     class_id = cls.get('id')
     is_ongoing = class_id in ongoing_classes
     class_has_ended = class_id in ended_classes
-    room_key = normalize_room_label(cls.get('room_number'))
+    room_key = normalize_room_label(FIXED_ROOM_NUMBER)
     room_is_occupied = room_has_active_session(room_key, room_session_map, exempt_class_id=class_id)
     schedule_passed = class_schedule_has_passed(class_id)
     server_lock_owner = session_view_locks.get(class_id)
@@ -1477,6 +1451,8 @@ def show_today_classes():
     title_column.pack(side='left', pady=10)
     title_label = ctk.CTkLabel(title_column, text=f'Classes for {today_label}', font=('Arial', 26, 'bold'), text_color=('#006400', '#90EE90'))
     title_label.pack(anchor='w')
+    room_label = ctk.CTkLabel(title_column, text=f'Room: {FIXED_ROOM_NUMBER}', font=('Arial', 21, 'bold'), text_color=('#006400', '#90EE90'))
+    room_label.pack(anchor='w', pady=(4, 0))
     datetime_label = ctk.CTkLabel(title_column, text='', font=('Arial', 20), text_color=('#2d5a2d', '#b8e6b8'))
     datetime_label.pack(anchor='w', pady=(4, 0))
     start_datetime_clock(datetime_label)
@@ -1914,9 +1890,8 @@ def show_today_classes():
                     refresh_class_card(cls)
                     class_instructor_assignments[class_id] = {'id': instructor_id_int, 'role': allowed_roles[instructor_id_int]}
                     persist_class_state()
-                    room_input = class_rooms.get(class_id)
-                    if not room_input:
-                        room_input = start_facial_recognition_for_class_show_room_modal(class_id)
+                    # Viewing an ongoing class should reuse known room, otherwise fall back to fixed room.
+                    room_input = class_rooms.get(class_id) or FIXED_ROOM_NUMBER
                     if room_input is None:
                         release_remote_view_lock(class_id, session_id)
                         refresh_class_card(cls)
@@ -1968,19 +1943,12 @@ def show_today_classes():
                             messagebox.showinfo('Instructor Verified', f'Welcome, {instructor_name}!')
                         except Exception:
                             pass
-                    room_input = class_rooms.get(class_id)
-                    while True:
-                        active_map = get_active_room_map(force_refresh=True)
-                        if room_input and room_is_currently_occupied(room_input, class_id, room_map_override=active_map):
-                            confirm_room_override(room_input, class_id, room_map_override=active_map)
-                            room_input = None
-                            continue
-                        if not room_input:
-                            room_input = start_facial_recognition_for_class_show_room_modal(class_id)
-                            if room_input is None:
-                                return
-                            continue
-                        break
+                    # New class start no longer asks for room selection; use fixed room directly.
+                    room_input = FIXED_ROOM_NUMBER
+                    active_map = get_active_room_map(force_refresh=True)
+                    if room_is_currently_occupied(room_input, class_id, room_map_override=active_map):
+                        confirm_room_override(room_input, class_id, room_map_override=active_map)
+                        return
                     session_info = record_instructor_checkin(cls, instructor_id_int, room_input)
                     if not session_info:
                         return

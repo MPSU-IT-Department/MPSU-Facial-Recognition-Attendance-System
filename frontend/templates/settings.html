@@ -79,9 +79,6 @@
                         <button type="button" class="btn btn-outline-success" id="changeSchoolYearBtn" data-requires-reset="true" onclick="changeSchoolYear()">
                             <i class="fas fa-graduation-cap me-2"></i>Change School Year
                         </button>
-                        <button type="button" class="btn btn-outline-primary" onclick="openRoomNumbersModal()">
-                            <i class="fas fa-door-open me-2"></i>Manage Room Numbers
-                        </button>
                         <button type="button" class="btn btn-outline-danger" onclick="resetAttendanceAndClasses()">
                             <i class="fas fa-redo me-2"></i>Reset Attendance and Classes
                         </button>
@@ -275,34 +272,6 @@
     </div>
 </div>
 
-<!-- Room Numbers Modal -->
-<div class="modal fade" id="roomNumbersModal" tabindex="-1" aria-labelledby="roomNumbersModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="roomNumbersModalLabel">Manage Room Numbers</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-3">Add every room where the kiosk might run. Click the <strong>X</strong> beside a room to remove it.</p>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="roomNumberInput" placeholder="Room 309" maxlength="20" aria-label="Room number">
-                    <button type="button" class="btn btn-primary" id="addRoomNumberBtn">
-                        <i class="fas fa-plus me-2"></i>Add Room
-                    </button>
-                </div>
-                <div id="roomNumberList" class="room-pill-container border rounded p-3">
-                    <div class="text-muted w-100 text-center">Loading rooms...</div>
-                </div>
-                <small class="text-muted d-block mt-2">Allowed characters: letters, numbers, spaces, or dashes (max 20). Limit 12 rooms.</small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Reset Attendance and Classes Modal -->
 <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -410,38 +379,6 @@
     color:  white;
 }
 
-.room-pill-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    min-height: 68px;
-    align-items: center;
-}
-
-.room-pill {
-    background-color: #343a40;
-    color: #fff;
-    border-radius: 999px;
-    padding: 0.35rem 0.75rem;
-    display: inline-flex;
-    align-items: center;
-    font-weight: 600;
-}
-
-.room-pill-remove {
-    border: none;
-    background: transparent;
-    color: #fff;
-    margin-left: 0.4rem;
-    font-size: 1rem;
-    line-height: 1;
-    padding: 0;
-}
-
-.room-pill-remove:hover {
-    color: #ffc107;
-}
-
 .reset-locked {
     cursor: not-allowed;
 }
@@ -449,12 +386,7 @@
 </style>
 
 <script>
-const ROOM_NUMBER_PATTERN = /^[A-Za-z0-9\s-]{1,20}$/;
-const ROOM_NUMBER_LIMIT = 12;
-const ROOM_NUMBER_FALLBACK = ['309', '310', '311'];
 const RESET_FLAG_KEY = 'attendanceResetCompleted';
-let systemSettingsCache = { room_numbers_list: [] };
-let managedRoomNumbers = [];
 let attendanceResetCompleted = false;
 
 try {
@@ -463,96 +395,6 @@ try {
     }
 } catch (error) {
     console.warn('Unable to read attendance reset flag:', error);
-}
-
-function refreshSystemSettingsCache() {
-    return fetch('/admin/api/system-settings', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-        }
-    })
-    .then(response => response.ok ? response.json() : {})
-    .then(data => {
-        if (data && typeof data === 'object') {
-            systemSettingsCache = data;
-            if (!Array.isArray(systemSettingsCache.room_numbers_list)) {
-                systemSettingsCache.room_numbers_list = getRoomNumbersFromMap(systemSettingsCache);
-            }
-        }
-        return systemSettingsCache;
-    })
-    .catch(error => {
-        console.warn('Unable to load system settings:', error);
-        return systemSettingsCache;
-    });
-}
-
-function getRoomNumbersFromMap(map) {
-    if (!map) {
-        return ROOM_NUMBER_FALLBACK.slice();
-    }
-    if (Array.isArray(map.room_numbers_list) && map.room_numbers_list.length) {
-        return map.room_numbers_list.slice();
-    }
-    const source = map.room_numbers || map.room_number || '';
-    if (!source) {
-        return ROOM_NUMBER_FALLBACK.slice();
-    }
-    const seen = new Set();
-    const cleaned = [];
-    source.split(',').forEach(room => {
-        const trimmed = room.trim();
-        if (!trimmed) {
-            return;
-        }
-        const key = trimmed.toLowerCase();
-        if (seen.has(key)) {
-            return;
-        }
-        seen.add(key);
-        cleaned.push(trimmed);
-    });
-    return cleaned.length ? cleaned : ROOM_NUMBER_FALLBACK.slice();
-}
-
-function getRoomNumbersFromCache() {
-    if (!systemSettingsCache) {
-        return ROOM_NUMBER_FALLBACK.slice();
-    }
-    const list = getRoomNumbersFromMap(systemSettingsCache);
-    return list.length ? list : ROOM_NUMBER_FALLBACK.slice();
-}
-
-function renderRoomNumberList() {
-    const container = document.getElementById('roomNumberList');
-    if (!container) {
-        return;
-    }
-    container.innerHTML = '';
-    if (!managedRoomNumbers.length) {
-        container.innerHTML = '<div class="text-muted w-100 text-center py-3">No rooms configured yet.</div>';
-        return;
-    }
-    managedRoomNumbers.forEach(room => {
-        const pill = document.createElement('div');
-        pill.className = 'room-pill';
-
-        const label = document.createElement('span');
-        label.className = 'room-pill-label';
-        label.textContent = room;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'room-pill-remove';
-        removeBtn.setAttribute('data-room', room);
-        removeBtn.setAttribute('aria-label', `Remove ${room}`);
-        removeBtn.innerHTML = '<span aria-hidden="true">&times;</span>';
-
-        pill.appendChild(label);
-        pill.appendChild(removeBtn);
-        container.appendChild(pill);
-    });
 }
 
 function setAttendanceResetCompleted() {
@@ -591,156 +433,8 @@ function updateResetDependentControls() {
     });
 }
 
-function setRoomNumberBusy(isBusy) {
-    const addBtn = document.getElementById('addRoomNumberBtn');
-    if (!addBtn) {
-        return;
-    }
-    if (!addBtn.dataset.originalHtml) {
-        addBtn.dataset.originalHtml = addBtn.innerHTML;
-    }
-    addBtn.disabled = isBusy;
-    addBtn.innerHTML = isBusy
-        ? '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Saving...'
-        : addBtn.dataset.originalHtml;
-}
-
-function persistRoomNumbers(updatedList, successMessage) {
-    if (!updatedList.length) {
-        window.showWarningNotification('At least one room number is required.');
-        return Promise.resolve(false);
-    }
-
-    setRoomNumberBusy(true);
-    return fetch('/admin/api/system-settings', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ room_numbers: updatedList })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            managedRoomNumbers = updatedList.slice();
-            systemSettingsCache.room_numbers_list = updatedList.slice();
-            systemSettingsCache.room_numbers = updatedList.join(',');
-            renderRoomNumberList();
-            if (successMessage) {
-                window.showSuccessNotification(successMessage);
-            }
-            return true;
-        }
-        window.showWarningNotification(data.message || 'Failed to update room numbers.');
-        return false;
-    })
-    .catch(error => {
-        console.error('Error updating room numbers:', error);
-        window.showWarningNotification('An error occurred while updating the room numbers.');
-        return false;
-    })
-    .finally(() => {
-        setRoomNumberBusy(false);
-    });
-}
-
-function handleAddRoomNumber(event) {
-    if (event) {
-        event.preventDefault();
-    }
-    const input = document.getElementById('roomNumberInput');
-    if (!input) {
-        return;
-    }
-    const value = input.value.trim();
-    if (!value) {
-        window.showWarningNotification('Please enter a room number.');
-        return;
-    }
-    if (!ROOM_NUMBER_PATTERN.test(value)) {
-        window.showWarningNotification('Room number can only contain letters, numbers, spaces, or dashes (max 20 characters).');
-        return;
-    }
-    if (managedRoomNumbers.some(room => room.toLowerCase() === value.toLowerCase())) {
-        window.showWarningNotification('That room has already been added.');
-        return;
-    }
-    if (managedRoomNumbers.length >= ROOM_NUMBER_LIMIT) {
-        window.showWarningNotification(`You can only store up to ${ROOM_NUMBER_LIMIT} rooms.`);
-        return;
-    }
-
-    const updatedList = managedRoomNumbers.concat(value);
-    persistRoomNumbers(updatedList, `Room ${value} added.`).then(success => {
-        if (success && input) {
-            input.value = '';
-            input.focus();
-        }
-    });
-}
-
-function handleRoomListClick(event) {
-    const removeBtn = event.target.closest('.room-pill-remove');
-    if (!removeBtn) {
-        return;
-    }
-    const roomValue = removeBtn.getAttribute('data-room');
-    if (!roomValue) {
-        return;
-    }
-    if (managedRoomNumbers.length <= 1) {
-        window.showWarningNotification('At least one room number is required.');
-        return;
-    }
-    const updatedList = managedRoomNumbers.filter(room => room.toLowerCase() !== roomValue.toLowerCase());
-    persistRoomNumbers(updatedList, `Room ${roomValue} removed.`);
-}
-
-function openRoomNumbersModal() {
-    refreshSystemSettingsCache().then(() => {
-        managedRoomNumbers = getRoomNumbersFromCache();
-        renderRoomNumberList();
-        const modalElement = document.getElementById('roomNumbersModal');
-        if (!modalElement) {
-            return;
-        }
-        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        modal.show();
-        setTimeout(() => {
-            const input = document.getElementById('roomNumberInput');
-            if (input) {
-                input.focus();
-            }
-        }, 200);
-    });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     const profileForm = document.querySelector('form[action="{{ url_for('auth.update_profile') }}"]');
-
-    refreshSystemSettingsCache().then(() => {
-        managedRoomNumbers = getRoomNumbersFromCache();
-        renderRoomNumberList();
-    });
-
-    const addRoomBtn = document.getElementById('addRoomNumberBtn');
-    if (addRoomBtn) {
-        addRoomBtn.addEventListener('click', handleAddRoomNumber);
-    }
-
-    const roomInput = document.getElementById('roomNumberInput');
-    if (roomInput) {
-        roomInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                handleAddRoomNumber(event);
-            }
-        });
-    }
-
-    const roomList = document.getElementById('roomNumberList');
-    if (roomList) {
-        roomList.addEventListener('click', handleRoomListClick);
-    }
 
     if (profileForm) {
         profileForm.addEventListener('submit', function(e) {
