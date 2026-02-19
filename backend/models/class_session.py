@@ -7,8 +7,8 @@ class ClassSession(db.Model):
     __tablename__ = 'class_sessions'
 
     id = Column(Integer, primary_key=True)
-    class_id = Column(Integer, ForeignKey('classes.id'), nullable=False)
-    instructor_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    class_id = Column(Integer, ForeignKey('Class.ClassID'), nullable=False)
+    instructor_id = Column(Integer, ForeignKey('Instructor.InstructorID'), nullable=True)
     date = Column(Date, nullable=False)
     start_time = Column(DateTime)
     scheduled_start_time = Column(DateTime)

@@ -173,7 +173,7 @@ For the facial recognition system, start by extracting the ZIP folder. Next, ope
 ### Installing the Database
 1. PostgreSQL 13.21 is installed by first downloading the official installer for Windows from the PostgreSQL website. After opening the installer click Next and keep the default installation folder. Select the PostgreSQL Server pgAdmin 4 and Command Line Tools then continue using the default data directory. Set a password for the postgres user and keep the default port 5432. Choose the default locale and proceed with the installation. Once finished open pgAdmin 4 and connect to PostgreSQL 13 using the password you created to confirm that the installation was successful.
 2. Since the environment variables are already set up you only need to create the database. Open a terminal and run the command below as the postgres user. This will create the database and assign ownership to the existing user:
-psql -U postgres -c "CREATE DATABASE frcas_db OWNER frcas_user;"
+psql -U postgres -c "CREATE DATABASE capstone_db OWNER frcas_user;"
 
 3. Before running the migration you need to activate the virtual environment. Open a terminal in your project folder and activate the venv then run the migration command to apply the database changes:
 flask db upgrade

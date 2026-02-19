@@ -10,13 +10,18 @@ from .attendance_record import AttendanceRecord
 from .instructor_face_encoding import InstructorFaceEncoding
 from .course import Course
 from .attendance_log import AttendanceLog
-from .verification_code import VerificationCode
 from .attendance_status import AttendanceStatus
 from .system_settings import SystemSettings
+Instructor = User
+Enrolled = Enrollment
+StudentAttendance = AttendanceRecord
 
 __all__ = [
     'db',
     'User',
+    'Instructor',
+    'Enrolled',
+    'StudentAttendance',
     'Student',
     'Class',
     'Enrollment',
@@ -27,7 +32,6 @@ __all__ = [
     'InstructorFaceEncoding',
     'Course',
     'AttendanceLog',
-    'VerificationCode',
     'AttendanceStatus',
     'SystemSettings'
 ] 

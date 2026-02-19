@@ -6,7 +6,7 @@ from utils.timezone import pst_now_naive
 class FaceEncoding(db.Model):
     __tablename__ = 'face_encodings'
     id = Column(Integer, primary_key=True)
-    student_id = Column(String(20), ForeignKey('students.id'), nullable=False)
+    student_id = Column(String(20), ForeignKey('Student.StudentID'), nullable=False)
     encoding_data = Column(LargeBinary, nullable=False, default=lambda: bytes([0] * 128))  # Store facial encoding as bytes with default
     image_path = Column(String(255))  # Optional: path to the reference image
     created_at = Column(DateTime, default=pst_now_naive)  # Add created_at column

@@ -3,28 +3,47 @@ import os
 
 load_dotenv()
 
+
+def _env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_csv(name, default_csv):
+    value = os.environ.get(name, default_csv)
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
 class Config:
+    LOCALHOST_ONLY = _env_bool("FRCAS_LOCALHOST_ONLY", True)
+
     # Flask-Limiter Storage
     # Default to in-memory for local/dev; override with REDIS_URL for production
     RATELIMIT_STORAGE_URL = os.environ.get('REDIS_URL', 'memory://')
-    SECRET_KEY = os.environ.get('SESSION_SECRET', '#')
+    SECRET_KEY = os.environ.get('SESSION_SECRET', 'frcas-local-session-secret')
     
     # Database configuration
     DB_USER = os.environ.get('DB_USER', 'postgres')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'password')
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
     DB_PORT = os.environ.get('DB_PORT', '5432')
-    DB_NAME = os.environ.get('DB_NAME', 'frcas_db')
+    DB_NAME = os.environ.get('DB_NAME', 'capstone_db')
     
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # API Security
-    API_KEY = 'FrC4sS3cUr3K3y2024!@#$%^&*()'  # Updated API key
+    API_KEY = os.environ.get('FRCAS_API_KEY', 'frcas-local-api-key')
     API_RATE_LIMIT = '100 per minute'  # Rate limiting for API endpoints
     API_TIMESTAMP_TOLERANCE = 300  # 5 minutes in seconds for client-server time sync
     API_MAX_RETRIES = 3  # Maximum number of retries for failed operations
     API_RETRY_DELAY = 0.1  # Delay between retries in seconds
+    CORS_ALLOWED_ORIGINS = _env_csv(
+        'FRCAS_CORS_ALLOWED_ORIGINS',
+        'http://localhost:5000,http://127.0.0.1:5000,https://localhost:5000,https://127.0.0.1:5000'
+    )
     
     # File upload configuration (store under frontend/static/uploads)
     _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -43,15 +62,8 @@ class Config:
     ATTENDANCE_ABSENT_PROCESSING_DELAY = 15  # minutes after session end
     ATTENDANCE_EARLY_THRESHOLD = -5  # minutes (negative means before scheduled start)
     
-    # Logging Settings
-    LOG_LEVEL = 'INFO'
-    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    LOG_FILE = 'app.log'
-    LOG_MAX_BYTES = 10 * 1024 * 1024  # 10MB
-    LOG_BACKUP_COUNT = 5
-    
     # Security Settings
-    SESSION_COOKIE_SECURE = False  # Allow HTTP in development
+    SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', False)  # Keep False for localhost HTTP
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
@@ -61,5 +73,5 @@ class Config:
     
     # Application Settings
     VERSION = '1.0.0'
-    DEBUG = True  # Enable debug mode in development
+    DEBUG = _env_bool('FLASK_DEBUG', True)  # Enable debug by default for localhost
     TESTING = False

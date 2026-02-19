@@ -6,7 +6,7 @@ from utils.timezone import pst_now_naive
 class InstructorFaceEncoding(db.Model):
     __tablename__ = 'instructor_face_encodings'
     id = Column(Integer, primary_key=True)
-    instructor_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    instructor_id = Column(Integer, ForeignKey('Instructor.InstructorID'), nullable=False)
     encoding = Column(LargeBinary, nullable=False)
     image_path = Column(String(255))
     created_at = Column(DateTime, default=pst_now_naive)

@@ -4,11 +4,13 @@ from datetime import datetime
 from utils.timezone import pst_now_naive
 
 class Enrollment(db.Model):
-    __tablename__ = 'enrollments'
+    __tablename__ = 'Enrolled'
     
-    id = Column(Integer, primary_key=True)
-    student_id = Column(db.String(20), ForeignKey('students.id'), nullable=False)
-    class_id = Column(Integer, ForeignKey('classes.id'), nullable=False)
+    id = Column('EnrollmentID', Integer, primary_key=True)
+    student_id = Column('StudentID', db.String(20), ForeignKey('Student.StudentID'), nullable=False)
+    class_id = Column('ClassID', Integer, ForeignKey('Class.ClassID'), nullable=False)
+    school_year = Column('SchoolYear', db.String(9), nullable=True)
+    term = Column('Term', db.String(20), nullable=True)
     created_at = Column(DateTime, default=pst_now_naive)
     
     # Relationships
@@ -23,3 +25,7 @@ class Enrollment(db.Model):
     @enrolled_date.setter
     def enrolled_date(self, value):
         self.created_at = value
+
+    @property
+    def enrollment_id(self):
+        return self.id

@@ -7,8 +7,8 @@ class AttendanceLog(db.Model):
     __tablename__ = 'attendance_logs'
     
     id = Column(Integer, primary_key=True)
-    student_id = Column(String(20), ForeignKey('students.id'), nullable=False)
-    class_id = Column(Integer, ForeignKey('classes.id'), nullable=False)
+    student_id = Column(String(20), ForeignKey('Student.StudentID'), nullable=False)
+    class_id = Column(Integer, ForeignKey('Class.ClassID'), nullable=False)
     check_in_time = Column(DateTime, nullable=False)
     status = Column(String(20), nullable=False)  # 'Present', 'Late', 'Absent'
     notes = Column(String(500))
